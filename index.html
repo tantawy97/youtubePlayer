@@ -14,18 +14,9 @@ html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
   overflow:hidden;
   background:#000;
 }
-#player {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+#player {width:100%;height:100%;object-fit:cover;}
 #overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
-#pauseOverlay {
-  position:absolute; inset:0;
-  background:#000;
-  z-index:2;
-  display:none;
-}
+#pauseOverlay {position:absolute; inset:0; background:#000; z-index:2; display:none;}
 #controls {
   position:absolute; bottom:0; left:0; width:100%;
   z-index:4;
@@ -47,18 +38,9 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
 
 /* --- Responsive for Mobile --- */
 @media (max-width:768px){
-  #controls {
-    padding:5px 8px;
-    gap:5px;
-  }
-  #leftControls button, #fsBtn {
-    padding:4px 8px;
-    font-size:14px;
-    width:auto; height:auto;
-  }
-  #centerPlayBtn {
-    width:80px; height:80px; font-size:50px;
-  }
+  #controls {padding:5px 8px; gap:5px;}
+  #leftControls button, #fsBtn {padding:4px 8px; font-size:14px; width:auto; height:auto;}
+  #centerPlayBtn {width:80px; height:80px; font-size:50px;}
   #time { font-size:12px; min-width:60px; }
   #volumeSlider { bottom:40px; width:6px; height:80px; }
   #watermark { font-size:16px; top:5px; left:5px; }
@@ -135,14 +117,24 @@ function updateState(event){
   }
 }
 
+// Play/Pause
 function updatePlayPauseIcon(){ playPauseBtn.innerText=isPlaying?'⏸':'▶️'; }
 playPauseBtn.addEventListener('click',()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
 centerPlayBtn.addEventListener('click',()=>{ player.playVideo(); });
 
+// Volume
 let volumeVisible=false;
-muteBtn.addEventListener('click',()=>{ volumeVisible=!volumeVisible; volumeSlider.style.display=volumeVisible?'block':'none'; if(volumeVisible) volumeSlider.value=player.getVolume(); });
-volumeSlider.addEventListener('input',()=>{ player.setVolume(volumeSlider.value); if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; } else { player.unMute(); muteBtn.innerText='🔊'; } });
+muteBtn.addEventListener('click',()=>{
+  volumeVisible=!volumeVisible;
+  volumeSlider.style.display=volumeVisible?'block':'none';
+  if(volumeVisible) volumeSlider.value=player.getVolume();
+});
+volumeSlider.addEventListener('input',()=>{
+  player.setVolume(volumeSlider.value);
+  if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; } else { player.unMute(); muteBtn.innerText='🔊'; }
+});
 
+// Fullscreen
 function toggleFullscreen(){
   if(!document.fullscreenElement) wrapper.requestFullscreen?.() || wrapper.webkitRequestFullscreen?.() || wrapper.msRequestFullscreen?.();
   else document.exitFullscreen?.() || document.webkitExitFullscreen?.() || document.msExitFullscreen?.();
@@ -158,24 +150,46 @@ document.addEventListener('mozfullscreenchange',updateFsIcon);
 document.addEventListener('msfullscreenchange',updateFsIcon);
 updateFsIcon();
 
-overlay.addEventListener('click', (e)=>{ if(clickTimeout) return; clickTimeout=setTimeout(()=>{ if(!e._doubleClick){ if(isPlaying) player.pauseVideo(); else player.playVideo(); } clickTimeout=null; },300); });
-overlay.addEventListener('dblclick',(e)=>{ e._doubleClick=true; clearTimeout(clickTimeout); clickTimeout=null; toggleFullscreen(); });
+// Overlay / mobile tap
+let lastTap = 0;
+overlay.addEventListener('touchend', (e) => {
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+  const x = e.changedTouches[0].clientX;
+  const width = overlay.clientWidth;
 
-let lastTap=0;
-overlay.addEventListener('touchend',(e)=>{
-  const currentTime=new Date().getTime();
-  const tapLength=currentTime-lastTap;
-  const x=e.changedTouches[0].clientX;
-  const width=overlay.clientWidth;
-  if(tapLength<300 && tapLength>0){
-    if(x>width/2) player.seekTo(player.getCurrentTime()+10,true);
-    else player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
+  if (tapLength < 300 && tapLength > 0) {
+    // Double tap → seek
+    if (x > width / 2) player.seekTo(player.getCurrentTime() + 10, true);
+    else player.seekTo(Math.max(player.getCurrentTime() - 10, 0), true);
   } else {
-    setTimeout(()=>{ if(tapLength>=300) { if(isPlaying) player.pauseVideo(); else player.playVideo(); } },310);
+    // Single tap → show controls only
+    showControls();
   }
-  lastTap=currentTime;
+
+  lastTap = currentTime;
 });
 
+// Desktop click
+overlay.addEventListener('click', (e)=>{
+  if(!('ontouchend' in window)){
+    if(clickTimeout) return;
+    clickTimeout=setTimeout(()=>{
+      if(!e._doubleClick){
+        if(isPlaying) player.pauseVideo(); else player.playVideo();
+      }
+      clickTimeout=null;
+    },300);
+  }
+});
+overlay.addEventListener('dblclick',(e)=>{
+  e._doubleClick=true;
+  clearTimeout(clickTimeout);
+  clickTimeout=null;
+  toggleFullscreen();
+});
+
+// Progress
 function updateProgress(){
   if(player && player.getDuration){
     duration=player.getDuration();
@@ -188,6 +202,7 @@ function updateProgress(){
 progress.addEventListener('input',()=>player.seekTo(progress.value,true));
 function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60); return `${m}:${s<10?'0':''}${s}`; }
 
+// Keyboard
 document.addEventListener('keydown',(e)=>{
   if(e.key==="ArrowRight") player.seekTo(player.getCurrentTime()+10,true);
   if(e.key==="ArrowLeft") player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
@@ -205,13 +220,16 @@ document.addEventListener('keydown',(e)=>{
   if(e.key==="F12") e.preventDefault();
 });
 
+// Prevent right click
 document.addEventListener('contextmenu',e=>e.preventDefault());
 
+// Controls auto-hide
 let controlsTimeout;
 function showControls(){ controlsDiv.classList.remove('hidden'); clearTimeout(controlsTimeout); controlsTimeout=setTimeout(()=>{ controlsDiv.classList.add('hidden'); },2000);}
 wrapper.addEventListener('mousemove',showControls);
 controlsTimeout=setTimeout(()=>{ controlsDiv.classList.add('hidden'); },2000);
 
+// Watermark
 function moveWatermarkRandomly(){
   const maxX=wrapper.clientWidth-watermark.clientWidth-10;
   const maxY=wrapper.clientHeight-watermark.clientHeight-10;
