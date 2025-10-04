@@ -164,7 +164,7 @@ overlay.addEventListener('touchend', (e)=>{
   const tapX = e.changedTouches[0].clientX;
   const width = overlay.clientWidth;
   const tapInterval = currentTime - lastTapTime;
-  const controlsHidden = controlsDiv.classList.contains('hidden');
+  const controlsHidden = true;
 
   // Double tap detection
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
