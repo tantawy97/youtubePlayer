@@ -21,7 +21,7 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
 #watermark {position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4); font-size:20px; font-weight:bold; z-index:5; pointer-events:none; user-select:none; transition: top 0.5s ease, left 0.5s ease;}
 #volumeSlider {position:absolute; bottom:50px; left:70%; transform: translateX(-50%); display:none; width:8px; height:100px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; background:transparent; z-index:5;}
 #volumeSlider::-webkit-slider-thumb { -webkit-appearance: none; width:16px; height:16px; background:#fff; border-radius:50%; cursor:pointer; margin-top: -8px; margin-left:0;}
-#centerPlayBtn {position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:60px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:100px; height:100px; cursor:pointer; display:none; z-index:4;}
+#centerPlayBtn {position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:60px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:100px; height:100px; cursor:pointer; display:block; z-index:4;}
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -66,7 +66,6 @@ const volumeSlider=document.getElementById('volumeSlider');
 let isTouchDevice = false;
 let lastTapTime = 0;
 let lastTapX = 0;
-let skipNextSingleTap = false;
 
 // YouTube API
 function onYouTubeIframeAPIReady(){
@@ -85,22 +84,22 @@ function updateState(event){
   if(event.data===YT.PlayerState.PLAYING){
     isPlaying=true;
     pauseOverlay.style.display='none';
-    centerPlayBtn.style.display='none';
     updatePlayPauseIcon();
     updateWatermarkVisibility();
+    centerPlayBtn.innerText='⏸';
   } else if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
     isPlaying=false;
     pauseOverlay.style.display='block';
-    centerPlayBtn.style.display='block';
     updatePlayPauseIcon();
     updateWatermarkVisibility();
+    centerPlayBtn.innerText='▶️';
   }
 }
 
 // Play/Pause
 function updatePlayPauseIcon(){ playPauseBtn.innerText=isPlaying?'⏸':'▶️'; }
 playPauseBtn.addEventListener('click',()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
-centerPlayBtn.addEventListener('click',()=>{ player.playVideo(); });
+centerPlayBtn.addEventListener('click',()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
 
 // Volume
 let volumeVisible=false;
@@ -144,16 +143,32 @@ overlay.addEventListener('dblclick',(e)=>{
   clickTimeout=null;
   toggleFullscreen();
 });
+pauseOverlay.addEventListener('dblclick',(e)=>{
+  if(isTouchDevice) return;
+  e._doubleClick=true;
+  clearTimeout(clickTimeout);
+  clickTimeout=null;
 
-// Controls auto-hide
+  // Toggle fullscreen حتى لو الفيديو متوقف
+  toggleFullscreen();
+});
+// Controls auto-hide (بعد التشغيل)
 let controlsTimeout;
 function showControls(){ 
   controlsDiv.classList.remove('hidden'); 
+  centerPlayBtn.style.display='block';
   clearTimeout(controlsTimeout); 
-  controlsTimeout=setTimeout(()=>{ controlsDiv.classList.add('hidden'); },2000);
+  controlsTimeout=setTimeout(()=>{
+    controlsDiv.classList.add('hidden'); 
+    centerPlayBtn.style.display='none';
+  },2000);
 }
+
+// Controls ظاهرين من البداية
+controlsDiv.classList.remove('hidden');
+centerPlayBtn.style.display='block';
+
 wrapper.addEventListener('mousemove',showControls);
-controlsTimeout=setTimeout(()=>{ controlsDiv.classList.add('hidden'); },2000);
 
 // Mobile touch handler
 overlay.addEventListener('touchstart', ()=>{ isTouchDevice = true; });
@@ -164,37 +179,26 @@ overlay.addEventListener('touchend', (e)=>{
   const tapX = e.changedTouches[0].clientX;
   const width = overlay.clientWidth;
   const tapInterval = currentTime - lastTapTime;
-  const controlsHidden = true;
 
-  // Double tap detection
+  // Double tap detection (seek)
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
-    // Temporarily hide controls to prevent single-tap pause
-    const wasVisible = !controlsHidden;
-    controlsDiv.classList.add('hidden');
-
     if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
     else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
-
-    // Restore controls after 300ms if they were visible
-    if(wasVisible){
-      setTimeout(()=>{ controlsDiv.classList.remove('hidden'); }, 300);
-    }
-
     lastTapTime = 0;
     return;
   }
- controlsHidden = controlsDiv.classList.contains('hidden');
-  // Single tap
-  if(controlsHidden){
-    showControls();
+
+  // Toggle controls & centerPlayBtn
+  if(controlsDiv.classList.contains('hidden')){
+    showControls(); // يظهروا
   } else {
-    isPlaying?player.pauseVideo():player.playVideo();
+    controlsDiv.classList.add('hidden'); // يختفوا
+    centerPlayBtn.style.display='none';
   }
 
   lastTapTime = currentTime;
   lastTapX = tapX;
 });
-
 
 // Progress
 function updateProgress(){
@@ -224,7 +228,6 @@ document.addEventListener('keydown',(e)=>{
     if(vol===0){ player.mute(); muteBtn.innerText='🔇'; } else if(player.isMuted()){ player.unMute(); muteBtn.innerText='🔊'; }
     volumeSlider.value=player.getVolume();
   }
-  if(e.key==="F12") e.preventDefault();
 });
 
 // Prevent right click
