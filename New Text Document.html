@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<title>YouTube Custom Player</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+html,body {margin:0;height:100%;background:#000;}
+#wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
+#player {width:100%;height:100%;}
+#overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
+#pauseOverlay {position:absolute;inset:0;background:#000;z-index:2;display:none;}
+#controls {
+  position:absolute; bottom:0; left:0; width:100%;
+  z-index:3; display:flex; justify-content:space-between; align-items:center;
+  background:rgba(0,0,0,0.5); padding:10px 15px; box-sizing:border-box;
+  transition: opacity 0.5s ease;
+}
+#controls.hidden {opacity:0; pointer-events:none;}
+#leftControls {display:flex; gap:10px; align-items:center; position:relative;}
+button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; background:#fff; font-weight:600; font-size:16px;}
+#progressWrapper {flex:1; display:flex; align-items:center; gap:6px;}
+#progress {width:100%;}
+#time {color:#fff; font-size:13px; min-width:90px; text-align:right;}
+#fsBtn {width:32px; height:32px; background:#fff; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:18px;}
+#watermark {
+  position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4);
+  font-size:20px; font-weight:bold; z-index:4; pointer-events:none; user-select:none;
+  transition: top 0.5s ease, left 0.5s ease;
+}
+/* Vertical Volume slider */
+#volumeSlider {
+  position:absolute;
+  bottom:50px; /* فوق الزر */
+  left:70%; /* نزحناه شويه لليمين بدل 50% */
+  transform: translateX(-50%); /* لا يزال في منتصف العمود بالنسبة للـ left الجديد */
+  display:none;
+  width:8px; height:100px;
+  writing-mode: bt-lr; /* عمودي */
+  -webkit-appearance: slider-vertical;
+  background:transparent;
+  z-index:5;
+}
+/* تحريك thumb ليظهر أقرب لليمين */
+#volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  cursor:pointer;
+  margin-top: -8px; /* نصف ارتفاع الـ thumb */
+  margin-left: 0px; /* نزح الـ thumb يمين شويه */
+}
+/* Center Play Button */
+#centerPlayBtn {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  font-size:60px;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:100px;
+  height:100px;
+  cursor:pointer;
+  display:none;
+  z-index:4;
+}
+</style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="wrapper">
+  <div id="player"></div>
+  <div id="overlay"></div>
+  <div id="pauseOverlay"></div>
+  <button id="centerPlayBtn">▶️</button>
+  <div id="controls">
+    <div id="leftControls">
+      <button id="playPauseBtn">▶️</button>
+      <button id="muteBtn">🔊</button>
+      <input type="range" id="volumeSlider" min="0" max="100" value="100">
+    </div>
+    <div id="progressWrapper">
+      <input type="range" id="progress" value="0" min="0" step="0.1">
+      <div id="time">0:00 / 0:00</div>
+    </div>
+    <button id="fsBtn"><i class="fas fa-expand"></i></button>
+  </div>
+  <div id="watermark">My Watermark</div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+const VIDEO_ID = 'aqz-KE-bpKQ';
+let player, isPlaying=false, duration=0;
+
+const wrapper=document.getElementById('wrapper');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const fsBtn = document.getElementById('fsBtn');
+const fsIcon = fsBtn.querySelector('i');
+const overlay = document.getElementById('overlay');
+const progress = document.getElementById('progress');
+const time = document.getElementById('time');
+const controlsDiv = document.getElementById('controls');
+const watermark = document.getElementById('watermark');
+const muteBtn = document.getElementById('muteBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const pauseOverlay = document.getElementById('pauseOverlay');
+const centerPlayBtn = document.getElementById('centerPlayBtn');
+
+// YouTube API
+function onYouTubeIframeAPIReady(){
+player = new YT.Player('player', {
+  videoId: VIDEO_ID,
+  playerVars: { autoplay:0, controls:0, modestbranding:1, rel:0, fs:0, disablekb:1, showinfo:0 },
+  events:{
+    'onReady':()=>{duration = player.getDuration(); setInterval(updateProgress, 500);},
+    'onStateChange':updateState
+  }
+});
+}
+
+function updateState(event){
+  if(event.data===YT.PlayerState.PLAYING){
+    isPlaying=true;
+    pauseOverlay.style.display='none';
+    centerPlayBtn.style.display='none';
+    updatePlayPauseIcon();
+    updateWatermarkVisibility();
+  }
+  if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
+    isPlaying=false;
+    pauseOverlay.style.display='block';
+    centerPlayBtn.style.display='block';
+    updatePlayPauseIcon();
+    updateWatermarkVisibility();
+  }
+}
+
+// Play/Pause
+function updatePlayPauseIcon(){ playPauseBtn.innerText = isPlaying ? '⏸' : '▶️'; }
+playPauseBtn.addEventListener('click', ()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
+centerPlayBtn.addEventListener('click', ()=>{ player.playVideo(); });
+
+// Vertical Volume
+let volumeVisible = false;
+muteBtn.addEventListener('click', ()=>{
+  volumeVisible = !volumeVisible;
+  volumeSlider.style.display = volumeVisible ? 'block' : 'none';
+  if(volumeVisible){ volumeSlider.value = player.getVolume(); }
+});
+
+volumeSlider.addEventListener('input', ()=>{
+  player.setVolume(volumeSlider.value);
+  if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; }
+  else{ player.unMute(); muteBtn.innerText='🔊'; }
+});
+
+// Fullscreen
+function toggleFullscreen(){
+  if(!document.fullscreenElement) wrapper.requestFullscreen?.() || wrapper.webkitRequestFullscreen?.() || wrapper.msRequestFullscreen?.();
+  else document.exitFullscreen?.() || document.webkitExitFullscreen?.() || document.msExitFullscreen?.();
+}
+function updateFsIcon(){
+  if(document.fullscreenElement){ fsIcon.classList.remove('fa-expand'); fsIcon.classList.add('fa-compress'); } 
+  else{ fsIcon.classList.remove('fa-compress'); fsIcon.classList.add('fa-expand'); }
+}
+fsBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFsIcon);
+document.addEventListener('webkitfullscreenchange', updateFsIcon);
+document.addEventListener('mozfullscreenchange', updateFsIcon);
+document.addEventListener('msfullscreenchange', updateFsIcon);
+updateFsIcon();
+
+// Overlay click
+overlay.addEventListener('click', ()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
+overlay.addEventListener('dblclick', toggleFullscreen);
+
+// Progress
+function updateProgress(){
+  if(player && player.getDuration){
+    duration = player.getDuration();
+    const current = player.getCurrentTime();
+    progress.max = duration;
+    progress.value = current;
+    time.innerText = `${formatTime(current)} / ${formatTime(duration)}`;
+  }
+}
+progress.addEventListener('input', ()=>player.seekTo(progress.value,true));
+function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60); return `${m}:${s<10?'0':''}${s}`; }
+
+// Keyboard controls
+document.addEventListener('keydown',(e)=>{
+  if(e.key==="ArrowRight") player.seekTo(player.getCurrentTime()+10,true);
+  if(e.key==="ArrowLeft") player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
+  if(e.key==="ArrowUp"){
+    const vol = Math.min(player.getVolume()+10,100);
+    player.setVolume(vol);
+    if(vol>0 && player.isMuted()) { player.unMute(); muteBtn.innerText='🔊'; volumeSlider.value=vol; }
+  }
+  if(e.key==="ArrowDown"){
+    const vol = Math.max(player.getVolume()-10,0);
+    player.setVolume(vol);
+    if(vol===0){ player.mute(); muteBtn.innerText='🔇'; } else if(player.isMuted()){ player.unMute(); muteBtn.innerText='🔊'; }
+    volumeSlider.value = player.getVolume();
+  }
+  if(e.key==="F12") e.preventDefault();
+});
+
+// Prevent right click
+document.addEventListener('contextmenu', e=>e.preventDefault());
+
+// Auto-hide controls
+let controlsTimeout;
+function showControls(){
+  controlsDiv.classList.remove('hidden');
+  clearTimeout(controlsTimeout);
+  controlsTimeout = setTimeout(()=>{ controlsDiv.classList.add('hidden'); }, 2000);
+}
+wrapper.addEventListener('mousemove', showControls);
+controlsTimeout = setTimeout(()=>{ controlsDiv.classList.add('hidden'); }, 2000);
+
+// Watermark
+function moveWatermarkRandomly(){
+  const maxX = wrapper.clientWidth - watermark.clientWidth - 10;
+  const maxY = wrapper.clientHeight - watermark.clientHeight - 10;
+  const randomX = Math.random() * maxX;
+  const randomY = Math.random() * maxY;
+  watermark.style.left = `${randomX}px`;
+  watermark.style.top = `${randomY}px`;
+}
+setInterval(()=>{ if(isPlaying) moveWatermarkRandomly(); }, 2000);
+function updateWatermarkVisibility(){ watermark.style.display = isPlaying ? 'block' : 'none'; }
+</script>
+</body>
+</html>
