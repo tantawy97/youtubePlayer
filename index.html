@@ -183,7 +183,7 @@ overlay.addEventListener('touchend', (e)=>{
     lastTapTime = 0;
     return;
   }
-
+ controlsHidden = controlsDiv.classList.contains('hidden');
   // Single tap
   if(controlsHidden){
     showControls();
