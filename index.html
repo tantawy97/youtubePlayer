@@ -93,7 +93,13 @@ function updateState(event){
     centerPlayBtn.style.display='none';
     updatePlayPauseIcon();
     updateWatermarkVisibility();
-  } else if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
+  } else if(event.data===YT.PlayerState.PAUSED){
+    isPlaying=false;
+    pauseOverlay.style.display='block';
+    centerPlayBtn.style.display='block';
+    updatePlayPauseIcon();
+    updateWatermarkVisibility();
+  } else if(event.data===YT.PlayerState.ENDED){
     isPlaying=false;
     pauseOverlay.style.display='block';
     centerPlayBtn.style.display='block';
@@ -101,6 +107,7 @@ function updateState(event){
     updateWatermarkVisibility();
   }
 }
+
 
 // Play/Pause
 function updatePlayPauseIcon(){ playPauseBtn.innerText=isPlaying?'⏸':'▶️'; }
