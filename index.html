@@ -168,21 +168,23 @@ overlay.addEventListener('touchend', (e)=>{
 
   // Double tap detection
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
-    skipNextSingleTap = true;
+    // Temporarily hide controls to prevent single-tap pause
+    const wasVisible = !controlsHidden;
+    controlsDiv.classList.add('hidden');
+
     if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
     else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
+
+    // Restore controls after 300ms if they were visible
+    if(wasVisible){
+      setTimeout(()=>{ controlsDiv.classList.remove('hidden'); }, 300);
+    }
+
     lastTapTime = 0;
     return;
   }
 
   // Single tap
-  if(skipNextSingleTap){
-    skipNextSingleTap = false;
-    lastTapTime = currentTime;
-    lastTapX = tapX;
-    return; // skip play/pause
-  }
-
   if(controlsHidden){
     showControls();
   } else {
@@ -192,6 +194,7 @@ overlay.addEventListener('touchend', (e)=>{
   lastTapTime = currentTime;
   lastTapX = tapX;
 });
+
 
 // Progress
 function updateProgress(){
