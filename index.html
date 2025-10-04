@@ -29,6 +29,12 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
   background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
   cursor:pointer; display:block; z-index:4;
 }
+
+/* حجم controls حسب الجهاز */
+@media (max-width:768px){
+  #controls {padding:15px;}
+  #centerPlayBtn {font-size:15vw; width:25vw; height:25vw; min-width:100px; min-height:100px;}
+}
 #wrapper.fullscreen #centerPlayBtn { font-size:12vw; width:20vw; height:20vw; min-width:100px; min-height:100px; }
 #wrapper.fullscreen #controls { padding:2vw; }
 </style>
@@ -123,15 +129,23 @@ volumeSlider.addEventListener('input',()=>{
 });
 
 // Fullscreen
-function toggleFullscreen(){
+async function toggleFullscreen(){
   if(!document.fullscreenElement){
-    if(wrapper.requestFullscreen) wrapper.requestFullscreen();
-    else if(wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen();
-    else if(wrapper.msRequestFullscreen) wrapper.msRequestFullscreen();
+    if(wrapper.requestFullscreen) await wrapper.requestFullscreen();
+    else if(wrapper.webkitRequestFullscreen) await wrapper.webkitRequestFullscreen();
+    else if(wrapper.msRequestFullscreen) await wrapper.msRequestFullscreen();
+
+    // Rotate screen on mobile
+    if(screen.orientation && screen.orientation.lock) {
+      try { await screen.orientation.lock('landscape'); } catch(e){} 
+    }
   } else {
-    if(document.exitFullscreen) document.exitFullscreen();
-    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else if(document.msExitFullscreen) document.msExitFullscreen();
+    if(document.exitFullscreen) await document.exitFullscreen();
+    else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+    else if(document.msExitFullscreen) await document.msExitFullscreen();
+
+    // Unlock orientation
+    if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
   }
 }
 function updateFsIcon(){
@@ -174,16 +188,18 @@ pauseOverlay.addEventListener('dblclick',(e)=>{
   toggleFullscreen();
 });
 
-// Controls auto-hide
+// Controls auto-hide بعد تشغيل الفيديو فقط
 let controlsTimeout;
 function showControls(){ 
   controlsDiv.classList.remove('hidden'); 
   centerPlayBtn.style.display='block';
   clearTimeout(controlsTimeout); 
-  controlsTimeout=setTimeout(()=>{
-    controlsDiv.classList.add('hidden'); 
-    centerPlayBtn.style.display='none';
-  },2000);
+  if(isPlaying){
+    controlsTimeout=setTimeout(()=>{
+      controlsDiv.classList.add('hidden'); 
+      centerPlayBtn.style.display='none';
+    },2000);
+  }
 }
 controlsDiv.classList.remove('hidden');
 centerPlayBtn.style.display='block';
