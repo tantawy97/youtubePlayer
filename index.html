@@ -2,10 +2,10 @@
 <html lang="ar">
 <head>
 <meta charset="utf-8">
-<title>YouTube Custom Player</title>
+<title>YouTube Custom Player Mobile Friendly</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-html,body {margin:0;height:100%;background:#000;}
+html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
 #wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
 #player {width:100%;height:100%;}
 #overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
@@ -23,12 +23,7 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
 #progress {width:100%;}
 #time {color:#fff; font-size:13px; min-width:90px; text-align:right;}
 #fsBtn {width:32px; height:32px; background:#fff; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:18px;}
-#watermark {
-  position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4);
-  font-size:20px; font-weight:bold; z-index:4; pointer-events:none; user-select:none;
-  transition: top 0.5s ease, left 0.5s ease;
-}
-/* Vertical Volume slider */
+#watermark {position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4); font-size:20px; font-weight:bold; z-index:4; pointer-events:none; user-select:none; transition: top 0.5s ease, left 0.5s ease;}
 #volumeSlider {
   position:absolute;
   bottom:50px; /* فوق الزر */
@@ -49,22 +44,10 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
   margin-top: -8px; /* نصف ارتفاع الـ thumb */
   margin-left: 0px; /* نزح الـ thumb يمين شويه */
 }
-/* Center Play Button */
 #centerPlayBtn {
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform: translate(-50%, -50%);
-  font-size:60px;
-  background:rgba(0,0,0,0.6);
-  color:#fff;
-  border:none;
-  border-radius:50%;
-  width:100px;
-  height:100px;
-  cursor:pointer;
-  display:none;
-  z-index:4;
+  position:absolute; top:50%; left:50%; transform: translate(-50%, -50%);
+  font-size:60px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
+  width:100px; height:100px; cursor:pointer; display:none; z-index:4;
 }
 </style>
 </head>
@@ -109,16 +92,15 @@ const volumeSlider = document.getElementById('volumeSlider');
 const pauseOverlay = document.getElementById('pauseOverlay');
 const centerPlayBtn = document.getElementById('centerPlayBtn');
 
-// YouTube API
 function onYouTubeIframeAPIReady(){
-player = new YT.Player('player', {
-  videoId: VIDEO_ID,
-  playerVars: { autoplay:0, controls:0, modestbranding:1, rel:0, fs:0, disablekb:1, showinfo:0 },
-  events:{
-    'onReady':()=>{duration = player.getDuration(); setInterval(updateProgress, 500);},
-    'onStateChange':updateState
-  }
-});
+  player = new YT.Player('player', {
+    videoId: VIDEO_ID,
+    playerVars: { autoplay:0, controls:0, modestbranding:1, rel:0, fs:0, disablekb:1, showinfo:0 },
+    events:{
+      'onReady':()=>{duration = player.getDuration(); setInterval(updateProgress, 500);},
+      'onStateChange':updateState
+    }
+  });
 }
 
 function updateState(event){
@@ -143,14 +125,13 @@ function updatePlayPauseIcon(){ playPauseBtn.innerText = isPlaying ? '⏸' : '�
 playPauseBtn.addEventListener('click', ()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
 centerPlayBtn.addEventListener('click', ()=>{ player.playVideo(); });
 
-// Vertical Volume
+// Volume
 let volumeVisible = false;
 muteBtn.addEventListener('click', ()=>{
   volumeVisible = !volumeVisible;
   volumeSlider.style.display = volumeVisible ? 'block' : 'none';
   if(volumeVisible){ volumeSlider.value = player.getVolume(); }
 });
-
 volumeSlider.addEventListener('input', ()=>{
   player.setVolume(volumeSlider.value);
   if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; }
@@ -175,7 +156,20 @@ updateFsIcon();
 
 // Overlay click
 overlay.addEventListener('click', ()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
-overlay.addEventListener('dblclick', toggleFullscreen);
+
+// Double click mobile: Right -> forward 10s, Left -> rewind 10s
+let lastTap = 0;
+overlay.addEventListener('touchend', (e)=>{
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+  if(tapLength < 300 && tapLength > 0){
+    const x = e.changedTouches[0].clientX;
+    const width = overlay.clientWidth;
+    if(x > width/2) player.seekTo(player.getCurrentTime()+10,true);
+    else player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
+  }
+  lastTap = currentTime;
+});
 
 // Progress
 function updateProgress(){
@@ -194,13 +188,13 @@ function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60)
 document.addEventListener('keydown',(e)=>{
   if(e.key==="ArrowRight") player.seekTo(player.getCurrentTime()+10,true);
   if(e.key==="ArrowLeft") player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
-  if(e.key==="ArrowUp"){
-    const vol = Math.min(player.getVolume()+10,100);
+  if(e.key==="ArrowUp"){ 
+    const vol=Math.min(player.getVolume()+10,100);
     player.setVolume(vol);
-    if(vol>0 && player.isMuted()) { player.unMute(); muteBtn.innerText='🔊'; volumeSlider.value=vol; }
+    if(vol>0 && player.isMuted()){player.unMute(); muteBtn.innerText='🔊'; volumeSlider.value=vol;}
   }
   if(e.key==="ArrowDown"){
-    const vol = Math.max(player.getVolume()-10,0);
+    const vol=Math.max(player.getVolume()-10,0);
     player.setVolume(vol);
     if(vol===0){ player.mute(); muteBtn.innerText='🔇'; } else if(player.isMuted()){ player.unMute(); muteBtn.innerText='🔊'; }
     volumeSlider.value = player.getVolume();
@@ -213,11 +207,7 @@ document.addEventListener('contextmenu', e=>e.preventDefault());
 
 // Auto-hide controls
 let controlsTimeout;
-function showControls(){
-  controlsDiv.classList.remove('hidden');
-  clearTimeout(controlsTimeout);
-  controlsTimeout = setTimeout(()=>{ controlsDiv.classList.add('hidden'); }, 2000);
-}
+function showControls(){ controlsDiv.classList.remove('hidden'); clearTimeout(controlsTimeout); controlsTimeout = setTimeout(()=>{ controlsDiv.classList.add('hidden'); }, 2000); }
 wrapper.addEventListener('mousemove', showControls);
 controlsTimeout = setTimeout(()=>{ controlsDiv.classList.add('hidden'); }, 2000);
 
