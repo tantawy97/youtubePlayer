@@ -44,6 +44,7 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
   </div>
   <div id="watermark">My Watermark</div>
 </div>
+
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 const VIDEO_ID = 'aqz-KE-bpKQ';
@@ -61,9 +62,11 @@ const controlsDiv=document.getElementById('controls');
 const watermark=document.getElementById('watermark');
 const muteBtn=document.getElementById('muteBtn');
 const volumeSlider=document.getElementById('volumeSlider');
+
 let isTouchDevice = false;
 let lastTapTime = 0;
 let lastTapX = 0;
+let skipNextSingleTap = false;
 
 // YouTube API
 function onYouTubeIframeAPIReady(){
@@ -85,13 +88,7 @@ function updateState(event){
     centerPlayBtn.style.display='none';
     updatePlayPauseIcon();
     updateWatermarkVisibility();
-  } else if(event.data===YT.PlayerState.PAUSED){
-    isPlaying=false;
-    pauseOverlay.style.display='block';
-    centerPlayBtn.style.display='block';
-    updatePlayPauseIcon();
-    updateWatermarkVisibility();
-  } else if(event.data===YT.PlayerState.ENDED){
+  } else if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
     isPlaying=false;
     pauseOverlay.style.display='block';
     centerPlayBtn.style.display='block';
@@ -171,20 +168,24 @@ overlay.addEventListener('touchend', (e)=>{
 
   // Double tap detection
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
-    // Seek only
+    skipNextSingleTap = true;
     if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
     else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
-
-    // Do NOT toggle play/pause
     lastTapTime = 0;
     return;
   }
 
   // Single tap
+  if(skipNextSingleTap){
+    skipNextSingleTap = false;
+    lastTapTime = currentTime;
+    lastTapX = tapX;
+    return; // skip play/pause
+  }
+
   if(controlsHidden){
-    showControls(); // only show controls, no play/pause
+    showControls();
   } else {
-    // Toggle play/pause
     isPlaying?player.pauseVideo():player.playVideo();
   }
 
@@ -235,6 +236,7 @@ function moveWatermarkRandomly(){
 }
 setInterval(()=>{ if(isPlaying) moveWatermarkRandomly(); },2000);
 function updateWatermarkVisibility(){ watermark.style.display=isPlaying?'block':'none'; }
+
 </script>
 </body>
 </html>
