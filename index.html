@@ -177,7 +177,8 @@ let lastTap=0;
 overlay.addEventListener('touchstart', ()=>{
   isTouchDevice = true; // Mark as touch device
 });
-
+let lastTapTime = 0;
+let lastTapX = 0;
 overlay.addEventListener('touchend', (e) => {
   isTouchDevice = true;
   e.preventDefault();
