@@ -73,6 +73,7 @@ const watermark=document.getElementById('watermark');
 const muteBtn=document.getElementById('muteBtn');
 const volumeSlider=document.getElementById('volumeSlider');
 let clickTimeout=null;
+let isTouchDevice = false; // Track if device supports touch
 
 function onYouTubeIframeAPIReady(){
   player=new YT.Player('player',{
@@ -134,8 +135,9 @@ document.addEventListener('mozfullscreenchange',updateFsIcon);
 document.addEventListener('msfullscreenchange',updateFsIcon);
 updateFsIcon();
 
-// Overlay click / double click
+// Overlay click / double click (Desktop only)
 overlay.addEventListener('click', (e)=>{
+  if(isTouchDevice) return; // Skip on touch devices
   if(clickTimeout) return;
   clickTimeout=setTimeout(()=>{
     if(!e._doubleClick){
@@ -144,7 +146,9 @@ overlay.addEventListener('click', (e)=>{
     clickTimeout=null;
   },300);
 });
+
 overlay.addEventListener('dblclick',(e)=>{
+  if(isTouchDevice) return; // Skip on touch devices
   e._doubleClick=true;
   clearTimeout(clickTimeout);
   clickTimeout=null;
@@ -161,9 +165,16 @@ function showControls(){
 wrapper.addEventListener('mousemove',showControls);
 controlsTimeout=setTimeout(()=>{ controlsDiv.classList.add('hidden'); },2000);
 
-// Mobile double tap - FIXED VERSION
+// Mobile touch handler - FIXED VERSION
 let lastTap=0;
+overlay.addEventListener('touchstart', ()=>{
+  isTouchDevice = true; // Mark as touch device
+});
+
 overlay.addEventListener('touchend',(e)=>{
+  isTouchDevice = true; // Mark as touch device
+  e.preventDefault(); // Prevent click event from firing
+  
   const currentTime=new Date().getTime();
   const tapLength=currentTime-lastTap;
   const x=e.changedTouches[0].clientX;
@@ -182,13 +193,9 @@ overlay.addEventListener('touchend',(e)=>{
       // Controls are hidden - just show them, don't pause/play
       showControls();
     } else {
-      // Controls are visible - toggle play/pause after delay
-      setTimeout(()=>{
-        if(tapLength>=300) {
-          if(isPlaying) player.pauseVideo();
-          else player.playVideo();
-        }
-      },310);
+      // Controls are visible - toggle play/pause
+      if(isPlaying) player.pauseVideo();
+      else player.playVideo();
     }
   }
   lastTap=currentTime;
