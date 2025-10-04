@@ -1,3 +1,134 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<title>YouTube Custom Player Black Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
+#wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
+#wrapper.fullscreen {width:100vw;height:100vh;}
+#player {width:100%;height:100%;}
+#overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
+#pauseOverlay {position:absolute; inset:0;background:#000; z-index:2;display:none;}
+#controls {position:absolute; bottom:0; left:0; width:100%; z-index:4; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px 15px; box-sizing:border-box; transition: opacity 0.5s ease;}
+#controls.hidden {opacity:0; pointer-events:none;}
+#leftControls {display:flex; gap:10px; align-items:center; position:relative;}
+button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; background:#fff; font-weight:600; font-size:16px;}
+#progressWrapper {flex:1; display:flex; align-items:center; gap:6px;}
+#progress {width:100%;}
+#time {color:#fff; font-size:13px; min-width:90px; text-align:right;}
+#fsBtn {width:32px; height:32px; background:#fff; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:18px;}
+#watermark {position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4); font-size:20px; font-weight:bold; z-index:5; pointer-events:none; user-select:none; transition: top 0.5s ease, left 0.5s ease;}
+#volumeSlider {position:absolute; bottom:50px; left:70%; transform: translateX(-50%); display:none; width:8px; height:100px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; background:transparent; z-index:5;}
+#volumeSlider::-webkit-slider-thumb { -webkit-appearance: none; width:16px; height:16px; background:#fff; border-radius:50%; cursor:pointer; margin-top: -8px; margin-left:0;}
+#centerPlayBtn {
+  position:absolute; top:50%; left:50%; transform: translate(-50%, -50%);
+  font-size:8vw; width:15vw; height:15vw; min-width:80px; min-height:80px;
+  background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
+  cursor:pointer; display:block; z-index:4;
+}
+
+/* حجم controls حسب الجهاز */
+@media (max-width:768px){
+  #controls {padding:15px;}
+  #centerPlayBtn {font-size:15vw; width:25vw; height:25vw; min-width:100px; min-height:100px;}
+}
+#wrapper.fullscreen #centerPlayBtn { font-size:12vw; width:20vw; height:20vw; min-width:100px; min-height:100px; }
+#wrapper.fullscreen #controls { padding:2vw; }
+</style>
+</head>
+<body oncontextmenu="return false;">
+<div id="wrapper">
+  <div id="player"></div>
+  <div id="overlay"></div>
+  <div id="pauseOverlay"></div>
+  <button id="centerPlayBtn">▶️</button>
+  <div id="controls">
+    <div id="leftControls">
+      <button id="playPauseBtn">▶️</button>
+      <button id="muteBtn">🔊</button>
+      <input type="range" id="volumeSlider" min="0" max="100" value="100">
+    </div>
+    <div id="progressWrapper">
+      <input type="range" id="progress" value="0" min="0" step="0.1">
+      <div id="time">0:00 / 0:00</div>
+    </div>
+    <button id="fsBtn"><i class="fas fa-expand"></i></button>
+  </div>
+  <div id="watermark">My Watermark</div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+const VIDEO_ID = 'aqz-KE-bpKQ';
+let player, isPlaying=false, duration=0;
+const wrapper=document.getElementById('wrapper');
+const playPauseBtn=document.getElementById('playPauseBtn');
+const fsBtn=document.getElementById('fsBtn');
+const fsIcon=fsBtn.querySelector('i');
+const overlay=document.getElementById('overlay');
+const pauseOverlay=document.getElementById('pauseOverlay');
+const centerPlayBtn=document.getElementById('centerPlayBtn');
+const progress=document.getElementById('progress');
+const time=document.getElementById('time');
+const controlsDiv=document.getElementById('controls');
+const watermark=document.getElementById('watermark');
+const muteBtn=document.getElementById('muteBtn');
+const volumeSlider=document.getElementById('volumeSlider');
+
+let isTouchDevice = false;
+let lastTapTime = 0;
+let lastTapX = 0;
+
+// YouTube API
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('player',{
+    videoId:VIDEO_ID,
+    playerVars:{autoplay:0,controls:0,modestbranding:1,rel:0,fs:0,disablekb:1,showinfo:0},
+    events:{
+      'onReady':()=>{duration=player.getDuration(); setInterval(updateProgress,500);},
+      'onStateChange':updateState
+    }
+  });
+}
+
+// State update
+function updateState(event){
+  if(event.data===YT.PlayerState.PLAYING){
+    isPlaying=true;
+    pauseOverlay.style.display='none';
+    updatePlayPauseIcon();
+    updateWatermarkVisibility();
+    centerPlayBtn.innerText='⏸';
+  } else if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
+    isPlaying=false;
+    pauseOverlay.style.display='block';
+    updatePlayPauseIcon();
+    updateWatermarkVisibility();
+    centerPlayBtn.innerText='▶️';
+  }
+}
+
+// Play/Pause
+function updatePlayPauseIcon(){ playPauseBtn.innerText=isPlaying?'⏸':'▶️'; }
+playPauseBtn.addEventListener('click',()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
+centerPlayBtn.addEventListener('click',()=>{ if(isPlaying) player.pauseVideo(); else player.playVideo(); });
+
+// Volume
+let volumeVisible=false;
+muteBtn.addEventListener('click',()=>{
+  volumeVisible=!volumeVisible;
+  volumeSlider.style.display=volumeVisible?'block':'none';
+  if(volumeVisible) volumeSlider.value=player.getVolume();
+});
+volumeSlider.addEventListener('input',()=>{
+  player.setVolume(volumeSlider.value);
+  if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; } else { player.unMute(); muteBtn.innerText='🔊'; }
+});
+
+// Fullscreen
 async function toggleFullscreen(){
   if(!document.fullscreenElement){
     if(wrapper.requestFullscreen) await wrapper.requestFullscreen();
@@ -41,3 +172,134 @@ async function toggleFullscreen(){
     progress.style.height = '';
   }
 }
+
+function updateFsIcon(){
+  if(document.fullscreenElement){
+    fsIcon.classList.remove('fa-expand'); 
+    fsIcon.classList.add('fa-compress'); 
+    wrapper.classList.add('fullscreen');
+  } else { 
+    fsIcon.classList.remove('fa-compress'); 
+    fsIcon.classList.add('fa-expand'); 
+    wrapper.classList.remove('fullscreen');
+  }
+}
+fsBtn.addEventListener('click',toggleFullscreen);
+['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','msfullscreenchange'].forEach(ev=>document.addEventListener(ev,updateFsIcon));
+updateFsIcon();
+
+// Desktop click/double click
+let clickTimeout=null;
+overlay.addEventListener('click', (e)=>{
+  if(isTouchDevice) return;
+  if(clickTimeout) return;
+  clickTimeout=setTimeout(()=>{
+    if(!e._doubleClick){ isPlaying?player.pauseVideo():player.playVideo(); }
+    clickTimeout=null;
+  },300);
+});
+overlay.addEventListener('dblclick',(e)=>{
+  if(isTouchDevice) return;
+  e._doubleClick=true;
+  clearTimeout(clickTimeout);
+  clickTimeout=null;
+  toggleFullscreen();
+});
+pauseOverlay.addEventListener('dblclick',(e)=>{
+  if(isTouchDevice) return;
+  e._doubleClick=true;
+  clearTimeout(clickTimeout);
+  clickTimeout=null;
+  toggleFullscreen();
+});
+
+// Controls auto-hide بعد تشغيل الفيديو فقط
+let controlsTimeout;
+function showControls(){ 
+  controlsDiv.classList.remove('hidden'); 
+  centerPlayBtn.style.display='block';
+  clearTimeout(controlsTimeout); 
+  if(isPlaying){
+    controlsTimeout=setTimeout(()=>{
+      controlsDiv.classList.add('hidden'); 
+      centerPlayBtn.style.display='none';
+    },2000);
+  }
+}
+controlsDiv.classList.remove('hidden');
+centerPlayBtn.style.display='block';
+wrapper.addEventListener('mousemove',showControls);
+
+// Mobile touch handler
+overlay.addEventListener('touchstart', ()=>{ isTouchDevice = true; });
+overlay.addEventListener('touchend', (e)=>{
+  e.preventDefault();
+  const currentTime = new Date().getTime();
+  const tapX = e.changedTouches[0].clientX;
+  const width = overlay.clientWidth;
+  const tapInterval = currentTime - lastTapTime;
+
+  if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
+    if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
+    else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
+    lastTapTime = 0;
+    return;
+  }
+
+  if(controlsDiv.classList.contains('hidden')){
+    showControls();
+  } else {
+    controlsDiv.classList.add('hidden');
+    centerPlayBtn.style.display='none';
+  }
+
+  lastTapTime = currentTime;
+  lastTapX = tapX;
+});
+
+// Progress
+function updateProgress(){
+  if(player && player.getDuration){
+    duration=player.getDuration();
+    const current=player.getCurrentTime();
+    progress.max=duration;
+    progress.value=current;
+    time.innerText=`${formatTime(current)} / ${formatTime(duration)}`;
+  }
+}
+progress.addEventListener('input',()=>player.seekTo(progress.value,true));
+function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60); return `${m}:${s<10?'0':''}${s}`; }
+
+// Keyboard
+document.addEventListener('keydown',(e)=>{
+  if(e.key==="ArrowRight") player.seekTo(player.getCurrentTime()+10,true);
+  if(e.key==="ArrowLeft") player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
+  if(e.key==="ArrowUp"){ 
+    const vol=Math.min(player.getVolume()+10,100);
+    player.setVolume(vol);
+    if(vol>0 && player.isMuted()){player.unMute(); muteBtn.innerText='🔊'; volumeSlider.value=vol;}
+  }
+  if(e.key==="ArrowDown"){
+    const vol=Math.max(player.getVolume()-10,0);
+    player.setVolume(vol);
+    if(vol===0){ player.mute(); muteBtn.innerText='🔇'; } else if(player.isMuted()){ player.unMute(); muteBtn.innerText='🔊'; }
+    volumeSlider.value=player.getVolume();
+  }
+});
+
+// Prevent right click
+document.addEventListener('contextmenu',e=>e.preventDefault());
+
+// Watermark
+function moveWatermarkRandomly(){
+  const maxX=wrapper.clientWidth-watermark.clientWidth-10;
+  const maxY=wrapper.clientHeight-watermark.clientHeight-10;
+  watermark.style.left=`${Math.random()*maxX}px`;
+  watermark.style.top=`${Math.random()*maxY}px`;
+}
+setInterval(()=>{ if(isPlaying) moveWatermarkRandomly(); },2000);
+function updateWatermarkVisibility(){ watermark.style.display=isPlaying?'block':'none'; }
+
+</script>
+</body>
+</html>
