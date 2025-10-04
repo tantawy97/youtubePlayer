@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>YouTube Custom Player Black Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
 #wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
+#wrapper.fullscreen {width:100vw;height:100vh;}
 #player {width:100%;height:100%;}
 #overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
 #pauseOverlay {position:absolute; inset:0;background:#000; z-index:2;display:none;}
@@ -21,7 +23,14 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
 #watermark {position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4); font-size:20px; font-weight:bold; z-index:5; pointer-events:none; user-select:none; transition: top 0.5s ease, left 0.5s ease;}
 #volumeSlider {position:absolute; bottom:50px; left:70%; transform: translateX(-50%); display:none; width:8px; height:100px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; background:transparent; z-index:5;}
 #volumeSlider::-webkit-slider-thumb { -webkit-appearance: none; width:16px; height:16px; background:#fff; border-radius:50%; cursor:pointer; margin-top: -8px; margin-left:0;}
-#centerPlayBtn {position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:60px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:100px; height:100px; cursor:pointer; display:block; z-index:4;}
+#centerPlayBtn {
+  position:absolute; top:50%; left:50%; transform: translate(-50%, -50%);
+  font-size:8vw; width:15vw; height:15vw; min-width:80px; min-height:80px;
+  background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
+  cursor:pointer; display:block; z-index:4;
+}
+#wrapper.fullscreen #centerPlayBtn { font-size:12vw; width:20vw; height:20vw; min-width:100px; min-height:100px; }
+#wrapper.fullscreen #controls { padding:2vw; }
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -115,12 +124,26 @@ volumeSlider.addEventListener('input',()=>{
 
 // Fullscreen
 function toggleFullscreen(){
-  if(!document.fullscreenElement) wrapper.requestFullscreen?.() || wrapper.webkitRequestFullscreen?.() || wrapper.msRequestFullscreen?.();
-  else document.exitFullscreen?.() || document.webkitExitFullscreen?.() || document.msExitFullscreen?.();
+  if(!document.fullscreenElement){
+    if(wrapper.requestFullscreen) wrapper.requestFullscreen();
+    else if(wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen();
+    else if(wrapper.msRequestFullscreen) wrapper.msRequestFullscreen();
+  } else {
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if(document.msExitFullscreen) document.msExitFullscreen();
+  }
 }
 function updateFsIcon(){
-  if(document.fullscreenElement){ fsIcon.classList.remove('fa-expand'); fsIcon.classList.add('fa-compress'); } 
-  else { fsIcon.classList.remove('fa-compress'); fsIcon.classList.add('fa-expand'); }
+  if(document.fullscreenElement){
+    fsIcon.classList.remove('fa-expand'); 
+    fsIcon.classList.add('fa-compress'); 
+    wrapper.classList.add('fullscreen');
+  } else { 
+    fsIcon.classList.remove('fa-compress'); 
+    fsIcon.classList.add('fa-expand'); 
+    wrapper.classList.remove('fullscreen');
+  }
 }
 fsBtn.addEventListener('click',toggleFullscreen);
 ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','msfullscreenchange'].forEach(ev=>document.addEventListener(ev,updateFsIcon));
@@ -148,11 +171,10 @@ pauseOverlay.addEventListener('dblclick',(e)=>{
   e._doubleClick=true;
   clearTimeout(clickTimeout);
   clickTimeout=null;
-
-  // Toggle fullscreen حتى لو الفيديو متوقف
   toggleFullscreen();
 });
-// Controls auto-hide (بعد التشغيل)
+
+// Controls auto-hide
 let controlsTimeout;
 function showControls(){ 
   controlsDiv.classList.remove('hidden'); 
@@ -163,16 +185,12 @@ function showControls(){
     centerPlayBtn.style.display='none';
   },2000);
 }
-
-// Controls ظاهرين من البداية
 controlsDiv.classList.remove('hidden');
 centerPlayBtn.style.display='block';
-
 wrapper.addEventListener('mousemove',showControls);
 
 // Mobile touch handler
 overlay.addEventListener('touchstart', ()=>{ isTouchDevice = true; });
-
 overlay.addEventListener('touchend', (e)=>{
   e.preventDefault();
   const currentTime = new Date().getTime();
@@ -180,7 +198,6 @@ overlay.addEventListener('touchend', (e)=>{
   const width = overlay.clientWidth;
   const tapInterval = currentTime - lastTapTime;
 
-  // Double tap detection (seek)
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
     if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
     else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
@@ -188,11 +205,10 @@ overlay.addEventListener('touchend', (e)=>{
     return;
   }
 
-  // Toggle controls & centerPlayBtn
   if(controlsDiv.classList.contains('hidden')){
-    showControls(); // يظهروا
+    showControls();
   } else {
-    controlsDiv.classList.add('hidden'); // يختفوا
+    controlsDiv.classList.add('hidden');
     centerPlayBtn.style.display='none';
   }
 
