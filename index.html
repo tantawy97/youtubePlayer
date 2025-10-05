@@ -130,46 +130,32 @@ volumeSlider.addEventListener('input',()=>{
 
 // Fullscreen
 async function toggleFullscreen(){
+  debugger
+  const iframe = player.getIframe();
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if(isIOS){
+    // iPhone أو iPad – استخدم وضع التشغيل المدمج
+    player.playVideo();
+    iframe.webkitEnterFullscreen?.(); // يخلي الفيديو يفتح بملء الشاشة زي YouTube الأصلي
+    return;
+  }
+
   if(!document.fullscreenElement){
-    if(wrapper.requestFullscreen) await wrapper.requestFullscreen();
-    else if(wrapper.webkitRequestFullscreen) await wrapper.webkitRequestFullscreen();
-    else if(wrapper.msRequestFullscreen) await wrapper.msRequestFullscreen();
-
-    // Mobile rotate
+    if (iframe.requestFullscreen) await iframe.requestFullscreen();
+    else if (iframe.webkitRequestFullscreen) await iframe.webkitRequestFullscreen();
+    else if (wrapper.requestFullscreen) await wrapper.requestFullscreen();
+    
+    // اختياري: قفل الاتجاه
     if(screen.orientation && screen.orientation.lock){
-      try { 
-        await screen.orientation.lock('landscape'); 
-      } catch(e){ console.log('Cannot lock orientation', e); }
+      try { await screen.orientation.lock('landscape'); } catch(e){}
     }
 
-    // Make video fill screen
-    wrapper.style.width = '100vw';
-    wrapper.style.height = '100vh';
-    player.getIframe().style.width = '100%';
-    player.getIframe().style.height = '100%';
-
-    // Make controls bigger on mobile
-    if(window.innerWidth < 768){
-      controlsDiv.style.fontSize = '20px';
-      progress.style.height = '10px';
-    }
+    wrapper.classList.add('fullscreen');
   } else {
     if(document.exitFullscreen) await document.exitFullscreen();
     else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
-    else if(document.msExitFullscreen) await document.msExitFullscreen();
-
-    // Unlock orientation
-    if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-
-    // Reset size
-    wrapper.style.width = '100%';
-    wrapper.style.height = '100vh';
-    player.getIframe().style.width = '100%';
-    player.getIframe().style.height = '100%';
-
-    // Controls normal size
-    controlsDiv.style.fontSize = '';
-    progress.style.height = '';
+    wrapper.classList.remove('fullscreen');
   }
 }
 
