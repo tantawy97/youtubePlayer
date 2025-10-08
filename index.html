@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
+html,body {margin:0;height:100%;background:#000; touch-action: manipulation; overflow: hidden;}
 #wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
-#wrapper.fullscreen {width:100vw;height:100vh;}
+#wrapper.fullscreen {width:100vw;height:100vh; position: fixed; top: 0; left: 0;}
 #player {width:100%;height:100%;}
 #overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
 #pauseOverlay {position:absolute; inset:0;background:#000; z-index:2;display:none;}
@@ -29,7 +29,6 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
   background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
   cursor:pointer; display:block; z-index:4;
 }
-
 /* حجم controls حسب الجهاز */
 @media (max-width:768px){
   #controls {padding:15px;}
@@ -59,7 +58,6 @@ button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; backgro
   </div>
   <div id="watermark">My Watermark</div>
 </div>
-
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 const VIDEO_ID = 'aqz-KE-bpKQ';
@@ -77,10 +75,11 @@ const controlsDiv=document.getElementById('controls');
 const watermark=document.getElementById('watermark');
 const muteBtn=document.getElementById('muteBtn');
 const volumeSlider=document.getElementById('volumeSlider');
-
 let isTouchDevice = false;
 let lastTapTime = 0;
 let lastTapX = 0;
+let isActivated = false;
+let isFullscreen = false;
 
 // YouTube API
 function onYouTubeIframeAPIReady(){
@@ -128,64 +127,129 @@ volumeSlider.addEventListener('input',()=>{
   if(volumeSlider.value==0){ player.mute(); muteBtn.innerText='🔇'; } else { player.unMute(); muteBtn.innerText='🔊'; }
 });
 
-// Fullscreen
+// Enhanced Fullscreen with Mobile Support
 async function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    if(wrapper.requestFullscreen) await wrapper.requestFullscreen();
-    else if(wrapper.webkitRequestFullscreen) await wrapper.webkitRequestFullscreen();
-    else if(wrapper.msRequestFullscreen) await wrapper.msRequestFullscreen();
-
-    // Mobile rotate
-    if(screen.orientation && screen.orientation.lock){
-      try { 
-        await screen.orientation.lock('landscape'); 
-      } catch(e){ console.log('Cannot lock orientation', e); }
+  try {
+    if(!isFullscreen){
+      // Enter fullscreen
+      const element = wrapper;
+      
+      // Try different fullscreen methods
+      if(element.requestFullscreen) {
+        await element.requestFullscreen();
+      } else if(element.webkitRequestFullscreen) {
+        await element.webkitRequestFullscreen();
+      } else if(element.mozRequestFullScreen) {
+        await element.mozRequestFullScreen();
+      } else if(element.msRequestFullscreen) {
+        await element.msRequestFullscreen();
+      } else if(element.webkitEnterFullscreen) {
+        // iOS Safari fallback
+        await element.webkitEnterFullscreen();
+      }
+      
+      // Lock orientation to landscape on mobile
+      if(screen.orientation && screen.orientation.lock){
+        try { 
+          await screen.orientation.lock('landscape-primary').catch(err => {
+            console.log('Orientation lock failed:', err);
+          });
+        } catch(e){ 
+          console.log('Cannot lock orientation', e); 
+        }
+      }
+      
+      // For mobile devices without orientation API
+      if(window.innerWidth < 768 && window.screen && window.screen.orientation){
+        try {
+          await window.screen.orientation.lock('landscape');
+        } catch(e){
+          console.log('Screen orientation lock not supported');
+        }
+      }
+      
+      isFullscreen = true;
+      wrapper.classList.add('fullscreen');
+      
+      // Force landscape layout
+      wrapper.style.width = '100vw';
+      wrapper.style.height = '100vh';
+      player.getIframe().style.width = '100%';
+      player.getIframe().style.height = '100%';
+      
+      // Make controls bigger on mobile
+      if(window.innerWidth < 768){
+        controlsDiv.style.fontSize = '20px';
+        progress.style.height = '10px';
+      }
+      
+    } else {
+      // Exit fullscreen
+      if(document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if(document.webkitExitFullscreen) {
+        await document.webkitExitFullscreen();
+      } else if(document.mozCancelFullScreen) {
+        await document.mozCancelFullScreen();
+      } else if(document.msExitFullscreen) {
+        await document.msExitFullscreen();
+      }
+      
+      // Unlock orientation
+      if(screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+      
+      isFullscreen = false;
+      wrapper.classList.remove('fullscreen');
+      
+      // Reset size
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100vh';
+      player.getIframe().style.width = '100%';
+      player.getIframe().style.height = '100%';
+      
+      // Controls normal size
+      controlsDiv.style.fontSize = '';
+      progress.style.height = '';
     }
-
-    // Make video fill screen
-    wrapper.style.width = '100vw';
-    wrapper.style.height = '100vh';
-    player.getIframe().style.width = '100%';
-    player.getIframe().style.height = '100%';
-
-    // Make controls bigger on mobile
-    if(window.innerWidth < 768){
-      controlsDiv.style.fontSize = '20px';
-      progress.style.height = '10px';
-    }
-  } else {
-    if(document.exitFullscreen) await document.exitFullscreen();
-    else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
-    else if(document.msExitFullscreen) await document.msExitFullscreen();
-
-    // Unlock orientation
-    if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-
-    // Reset size
-    wrapper.style.width = '100%';
-    wrapper.style.height = '100vh';
-    player.getIframe().style.width = '100%';
-    player.getIframe().style.height = '100%';
-
-    // Controls normal size
-    controlsDiv.style.fontSize = '';
-    progress.style.height = '';
+  } catch(error) {
+    console.error('Fullscreen error:', error);
+    // Fallback for iOS and other devices
+    wrapper.classList.toggle('fullscreen');
+    isFullscreen = !isFullscreen;
   }
 }
 
 function updateFsIcon(){
-  if(document.fullscreenElement){
+  if(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement){
     fsIcon.classList.remove('fa-expand'); 
     fsIcon.classList.add('fa-compress'); 
     wrapper.classList.add('fullscreen');
+    isFullscreen = true;
   } else { 
     fsIcon.classList.remove('fa-compress'); 
     fsIcon.classList.add('fa-expand'); 
     wrapper.classList.remove('fullscreen');
+    isFullscreen = false;
   }
 }
+
 fsBtn.addEventListener('click',toggleFullscreen);
 ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','msfullscreenchange'].forEach(ev=>document.addEventListener(ev,updateFsIcon));
+
+// Handle orientation change
+window.addEventListener('orientationchange', function() {
+  if(isFullscreen) {
+    setTimeout(() => {
+      wrapper.style.width = '100vw';
+      wrapper.style.height = '100vh';
+      player.getIframe().style.width = '100%';
+      player.getIframe().style.height = '100%';
+    }, 100);
+  }
+});
+
 updateFsIcon();
 
 // Desktop click/double click
@@ -198,6 +262,7 @@ overlay.addEventListener('click', (e)=>{
     clickTimeout=null;
   },300);
 });
+
 overlay.addEventListener('dblclick',(e)=>{
   if(isTouchDevice) return;
   e._doubleClick=true;
@@ -205,6 +270,7 @@ overlay.addEventListener('dblclick',(e)=>{
   clickTimeout=null;
   toggleFullscreen();
 });
+
 pauseOverlay.addEventListener('dblclick',(e)=>{
   if(isTouchDevice) return;
   e._doubleClick=true;
@@ -213,7 +279,7 @@ pauseOverlay.addEventListener('dblclick',(e)=>{
   toggleFullscreen();
 });
 
-// Controls auto-hide بعد تشغيل الفيديو فقط
+// Controls auto-hide
 let controlsTimeout;
 function showControls(){ 
   controlsDiv.classList.remove('hidden'); 
@@ -226,6 +292,7 @@ function showControls(){
     },2000);
   }
 }
+
 controlsDiv.classList.remove('hidden');
 centerPlayBtn.style.display='block';
 wrapper.addEventListener('mousemove',showControls);
@@ -238,21 +305,21 @@ overlay.addEventListener('touchend', (e)=>{
   const tapX = e.changedTouches[0].clientX;
   const width = overlay.clientWidth;
   const tapInterval = currentTime - lastTapTime;
-
+  
   if(tapInterval < 300 && Math.abs(tapX - lastTapX) < 50){
     if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
     else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
     lastTapTime = 0;
     return;
   }
-
+  
   if(controlsDiv.classList.contains('hidden')){
     showControls();
   } else {
     controlsDiv.classList.add('hidden');
     centerPlayBtn.style.display='none';
   }
-
+  
   lastTapTime = currentTime;
   lastTapX = tapX;
 });
@@ -265,8 +332,14 @@ function updateProgress(){
     progress.max=duration;
     progress.value=current;
     time.innerText=`${formatTime(current)} / ${formatTime(duration)}`;
+    const percent = (current / duration) * 100;
+    if(percent >= 30 && !isActivated){
+      isActivated = true;
+      console.log("🎉 الفيديو وصل 30% - يمكنك تفعيل المحاضرة التالية الآن");
+    }
   }
 }
+
 progress.addEventListener('input',()=>player.seekTo(progress.value,true));
 function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60); return `${m}:${s<10?'0':''}${s}`; }
 
@@ -285,6 +358,9 @@ document.addEventListener('keydown',(e)=>{
     if(vol===0){ player.mute(); muteBtn.innerText='🔇'; } else if(player.isMuted()){ player.unMute(); muteBtn.innerText='🔊'; }
     volumeSlider.value=player.getVolume();
   }
+  if(e.key==="f" || e.key==="F"){
+    toggleFullscreen();
+  }
 });
 
 // Prevent right click
@@ -300,6 +376,27 @@ function moveWatermarkRandomly(){
 setInterval(()=>{ if(isPlaying) moveWatermarkRandomly(); },2000);
 function updateWatermarkVisibility(){ watermark.style.display=isPlaying?'block':'none'; }
 
+// Prevent screen sleep on mobile
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock activated');
+    }
+  } catch (err) {
+    console.log('Wake Lock error:', err);
+  }
+}
+
+// Request wake lock when video plays
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    await requestWakeLock();
+  }
+});
+
+if(isPlaying) requestWakeLock();
 </script>
 </body>
 </html>
