@@ -302,7 +302,7 @@ overlay.addEventListener('touchstart', ()=>{ isTouchDevice = true; });
 overlay.addEventListener('touchend', (e)=>{
   e.preventDefault();
   const currentTime = new Date().getTime();
-  const tapX = e.changedTouches[0].clientX;
+  const tapX = e.changedTouches,[object Object],clientX;
   const width = overlay.clientWidth;
   const tapInterval = currentTime - lastTapTime;
   
