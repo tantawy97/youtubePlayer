@@ -1,126 +1,87 @@
 <!doctype html>
-<html lang="ar">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>YouTube Custom Player Fullscreen Improved</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- screenfull (fallbacks + cross-browser fullscreen helpers) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/screenfull.js/6.0.2/screenfull.min.js"></script>
-
+<title>YouTube Fullscreen Button (All Devices)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style>
-html,body {margin:0;height:100%;background:#000; touch-action: manipulation;}
-/* pseudo fullscreen class (fallback) */
-.pseudo-fullscreen {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 2147483647 !important;
+body {
+  margin: 0;
   background: #000;
-}
-#wrapper {position:relative;width:100%;height:100vh;overflow:hidden;background:#000;}
-#wrapper.fullscreen {width:100vw;height:100vh;}
-#player {width:100%;height:100%;}
-#overlay {position:absolute;inset:0;background:transparent;z-index:2;cursor:pointer;}
-#pauseOverlay {position:absolute; inset:0;background:#000; z-index:2;display:none;}
-#controls {position:absolute; bottom:0; left:0; width:100%; z-index:4; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px 15px; box-sizing:border-box; transition: opacity 0.5s ease;}
-#controls.hidden {opacity:0; pointer-events:none;}
-#leftControls {display:flex; gap:10px; align-items:center; position:relative;}
-button{padding:6px 12px; border:none; border-radius:4px; cursor:pointer; background:#fff; font-weight:600; font-size:16px;}
-#progressWrapper {flex:1; display:flex; align-items:center; gap:6px;}
-#progress {width:100%;}
-#time {color:#fff; font-size:13px; min-width:90px; text-align:right;}
-#fsBtn {width:32px; height:32px; background:#fff; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:18px;}
-#watermark {position:absolute; top:10px; left:10px; color:rgba(255,255,255,0.4); font-size:20px; font-weight:bold; z-index:5; pointer-events:none; user-select:none; transition: top 0.5s ease, left 0.5s ease;}
-#volumeSlider {position:absolute; bottom:50px; left:70%; transform: translateX(-50%); display:none; width:8px; height:100px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; background:transparent; z-index:5;}
-#volumeSlider::-webkit-slider-thumb { -webkit-appearance: none; width:16px; height:16px; background:#fff; border-radius:50%; cursor:pointer; margin-top: -8px; margin-left:0;}
-#centerPlayBtn {
-  position:absolute; top:50%; left:50%; transform: translate(-50%, -50%);
-  font-size:8vw; width:15vw; height:15vw; min-width:80px; min-height:80px;
-  background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
-  cursor:pointer; display:block; z-index:4;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* overlay الأبيض عند 30% */
-#whiteOverlay {
-  position:absolute; inset:0; background:white; z-index:10; opacity:0; pointer-events:none; transition:opacity .4s;
+.player-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 16/9;
 }
 
-/* حجم controls حسب الجهاز */
-@media (max-width:768px){
-  #controls {padding:15px;}
-  #centerPlayBtn {font-size:15vw; width:25vw; height:25vw; min-width:100px; min-height:100px;}
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
-#wrapper.fullscreen #centerPlayBtn { font-size:12vw; width:20vw; height:20vw; min-width:100px; min-height:100px; }
-#wrapper.fullscreen #controls { padding:2vw; }
+
+.fullscreen-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  font-size: 20px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 5;
+}
 </style>
 </head>
-<body oncontextmenu="return false;">
-<div id="wrapper">
-  <div id="player"></div>
-  <div id="overlay" title="اضغط لتشغيل/full screen"></div>
-  <div id="pauseOverlay"></div>
-  <div id="whiteOverlay"></div>
-  <button id="centerPlayBtn">▶️</button>
+<body>
 
-  <div id="controls">
-    <div id="leftControls">
-      <button id="playPauseBtn">▶️</button>
-      <button id="muteBtn">🔊</button>
-      <input type="range" id="volumeSlider" min="0" max="100" value="100">
-    </div>
-    <div id="progressWrapper">
-      <input type="range" id="progress" value="0" min="0" step="0.1">
-      <div id="time">0:00 / 0:00</div>
-    </div>
-    <button id="fsBtn"><i class="fas fa-expand"></i></button>
-  </div>
+<div class="player-container" id="playerContainer">
+  <iframe 
+    id="youtubePlayer"
+    src="https://www.youtube.com/embed/VIDEO_ID?fs=1&controls=1&modestbranding=1&rel=0"
+    title="YouTube video player"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
 
-  <div id="watermark">My Watermark</div>
+  <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
 </div>
 
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-const VIDEO_ID = 'aqz-KE-bpKQ'; // غيّر ID لو عايز فيديو تاني
-let player, isPlaying=false, duration=0;
-const wrapper=document.getElementById('wrapper');
-const playPauseBtn=document.getElementById('playPauseBtn');
-const fsBtn=document.getElementById('fsBtn');
-const fsIcon=fsBtn.querySelector('i');
-const overlay=document.getElementById('overlay');
-const pauseOverlay=document.getElementById('pauseOverlay');
-const centerPlayBtn=document.getElementById('centerPlayBtn');
-const progress=document.getElementById('progress');
-const time=document.getElementById('time');
-const controlsDiv=document.getElementById('controls');
-const watermark=document.getElementById('watermark');
-const muteBtn=document.getElementById('muteBtn');
-const volumeSlider=document.getElementById('volumeSlider');
-const whiteOverlay=document.getElementById('whiteOverlay');
+const btn = document.getElementById('fullscreenBtn');
+const playerContainer = document.getElementById('playerContainer');
 
-let isTouchDevice = false, lastTapTime=0, lastTapX=0;
-let shown30=false;
+btn.addEventListener('click', async () => {
+  const iframe = document.getElementById('youtubePlayer');
 
-// create YT player
-function onYouTubeIframeAPIReady(){
-  player=new YT.Player('player',{
-    videoId:VIDEO_ID,
-    playerVars:{
-      autoplay:0,
-      controls:0,
-      modestbranding:1,
-      rel:0,
-      fs:0,           // we control fullscreen ourselves
-      disablekb:1,
-      playsinline:1   // important for mobile inline behavior
-    },
-    events:{
-      'onReady': onPlayerReady,
-      'onStateChange': updateState
+  try {
+    // ✅ أولاً نحاول الطريقة القياسية
+    if (playerContainer.requestFullscreen) {
+      await playerContainer.requestFullscreen();
     }
-  });
-}
+    // ✅ لأجهزة Safari و iPhone
+    else if (playerContainer.webkitRequestFullscreen) {
+      playerContainer.webkitRequestFullscreen();
+    }
+    // ✅ fallback لو مفيش ولا واحدة
+    else {
+      alert('Fullscreen not supported on this device.');
+    }
+  } catch (err) {
+    console.error('Fullscreen error:', err);
+  }
+});
+</script>
 
-function onPlay
+</body>
+</html>
