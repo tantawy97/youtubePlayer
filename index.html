@@ -2,88 +2,74 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>YouTube Fullscreen for iPhone & Android</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>YouTube Player Control Example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body {
-  margin: 0;
   background: #000;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  color: white;
+  font-family: sans-serif;
   height: 100vh;
+  justify-content: center;
 }
 #player {
-  width: 100%;
+  width: 80%;
   max-width: 800px;
   aspect-ratio: 16/9;
 }
-.fullscreen-btn {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  background: rgba(0,0,0,0.6);
-  border: none;
-  color: white;
-  font-size: 20px;
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  z-index: 5;
-}
-.player-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 800px;
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
 }
 </style>
 </head>
 <body>
 
-<div class="player-wrapper">
-  <div id="player"></div>
-  <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+<div id="player"></div>
+
+<div>
+  <button onclick="player.playVideo()">▶ Play</button>
+  <button onclick="player.pauseVideo()">⏸ Pause</button>
+  <button onclick="getInfo()">ℹ Get Info</button>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 let player;
 
-// لما الـ YouTube API تجهز
+// ⬇️ دي بتشتغل أول ما مكتبة YouTube تتحمل
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
-    videoId: 'dQw4w9WgXcQ', // 🔥 غيّر دا لـ ID الفيديو بتاعك
+    videoId: 'dQw4w9WgXcQ', // غيّر دا بـ ID الفيديو بتاعك
     playerVars: {
-      'playsinline': 1,
+      'controls': 1,
       'modestbranding': 1,
       'rel': 0,
       'fs': 1,
-      'controls': 1
+      'playsinline': 1
     }
   });
 }
 
-// زرار الـ fullscreen
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
-  const iframe = player.getIframe();
+// ⬇️ تجيب بيانات الفيديو
+function getInfo() {
+  const videoUrl = player.getVideoUrl();
+  const duration = player.getDuration();
+  const currentTime = player.getCurrentTime();
+  const videoData = player.getVideoData();
 
-  if (iframe.requestFullscreen) {
-    iframe.requestFullscreen();
-  } else if (iframe.webkitRequestFullscreen) {
-    iframe.webkitRequestFullscreen();
-  } else if (iframe.msRequestFullscreen) {
-    iframe.msRequestFullscreen();
-  } else {
-    // fallback للـ iPhone
-    iframe.style.position = 'fixed';
-    iframe.style.top = 0;
-    iframe.style.left = 0;
-    iframe.style.width = '100vw';
-    iframe.style.height = '100vh';
-    iframe.style.zIndex = 9999;
-    iframe.style.background = '#000';
-  }
-});
+  console.log("🎥 URL:", videoUrl);
+  console.log("⏱ Duration:", duration);
+  console.log("⌛ Current Time:", currentTime);
+  console.log("📄 Title:", videoData.title);
+  console.log("🆔 Video ID:", videoData.video_id);
+
+  alert(`🎬 ${videoData.title}\nDuration: ${duration}s\nLink: ${videoUrl}`);
+}
 </script>
 
 </body>
