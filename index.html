@@ -2,32 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>YouTube Fullscreen Button (All Devices)</title>
+<title>YouTube Fullscreen for iPhone & Android</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style>
 body {
   margin: 0;
   background: #000;
-  height: 100vh;
-  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
 }
-
-.player-container {
-  position: relative;
+#player {
   width: 100%;
   max-width: 800px;
   aspect-ratio: 16/9;
 }
-
-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
 .fullscreen-btn {
   position: absolute;
   bottom: 15px;
@@ -41,44 +31,57 @@ iframe {
   cursor: pointer;
   z-index: 5;
 }
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+}
 </style>
 </head>
 <body>
 
-<div class="player-container" id="playerContainer">
-  <iframe 
-    id="youtubePlayer"
-    src="https://www.youtube.com/embed/VIDEO_ID?fs=1&controls=1&modestbranding=1&rel=0"
-    title="YouTube video player"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-
+<div class="player-wrapper">
+  <div id="player"></div>
   <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
 </div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-const btn = document.getElementById('fullscreenBtn');
-const playerContainer = document.getElementById('playerContainer');
+let player;
 
-btn.addEventListener('click', async () => {
-  const iframe = document.getElementById('youtubePlayer');
+// لما الـ YouTube API تجهز
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    videoId: 'dQw4w9WgXcQ', // 🔥 غيّر دا لـ ID الفيديو بتاعك
+    playerVars: {
+      'playsinline': 1,
+      'modestbranding': 1,
+      'rel': 0,
+      'fs': 1,
+      'controls': 1
+    }
+  });
+}
 
-  try {
-    // ✅ أولاً نحاول الطريقة القياسية
-    if (playerContainer.requestFullscreen) {
-      await playerContainer.requestFullscreen();
-    }
-    // ✅ لأجهزة Safari و iPhone
-    else if (playerContainer.webkitRequestFullscreen) {
-      playerContainer.webkitRequestFullscreen();
-    }
-    // ✅ fallback لو مفيش ولا واحدة
-    else {
-      alert('Fullscreen not supported on this device.');
-    }
-  } catch (err) {
-    console.error('Fullscreen error:', err);
+// زرار الـ fullscreen
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  const iframe = player.getIframe();
+
+  if (iframe.requestFullscreen) {
+    iframe.requestFullscreen();
+  } else if (iframe.webkitRequestFullscreen) {
+    iframe.webkitRequestFullscreen();
+  } else if (iframe.msRequestFullscreen) {
+    iframe.msRequestFullscreen();
+  } else {
+    // fallback للـ iPhone
+    iframe.style.position = 'fixed';
+    iframe.style.top = 0;
+    iframe.style.left = 0;
+    iframe.style.width = '100vw';
+    iframe.style.height = '100vh';
+    iframe.style.zIndex = 9999;
+    iframe.style.background = '#000';
   }
 });
 </script>
