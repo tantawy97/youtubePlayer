@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>iPhone Fullscreen Video</title>
+<title>YouTube Fullscreen iPhone Compatible</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 html, body {
@@ -12,74 +12,75 @@ html, body {
   background: #000;
   overflow: hidden;
 }
-video {
+
+#playerContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+iframe {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  background: #000;
-}
-button {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  padding: 10px 20px;
-  background: rgba(255,255,255,0.2);
-  color: #fff;
-  border: 1px solid #fff;
-  border-radius: 8px;
-  z-index: 999;
+  border: none;
 }
 </style>
 </head>
 <body>
 
-<video id="myVideo" playsinline controls>
-  <source src="your-video.mp4" type="video/mp4">
-  Your browser does not support HTML5 video.
-</video>
-
-<button id="fsBtn">Fullscreen</button>
+<div id="playerContainer">
+  <div id="player"></div>
+</div>
 
 <script>
-const video = document.getElementById('myVideo');
-const btn = document.getElementById('fsBtn');
+let player;
 
-// ✅ لما المستخدم يضغط على الزر — يدخل الفيديو fullscreen
-btn.addEventListener('click', () => {
-  enterFullscreen(video);
-});
+// تحميل YouTube API
+let tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+let firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-// ✅ كمان لما المستخدم يضغط على الفيديو نفسه
-video.addEventListener('click', () => {
-  enterFullscreen(video);
-});
-
-function enterFullscreen(videoElement) {
-  try {
-    if (videoElement.webkitEnterFullscreen) {
-      // iPhone Safari
-      videoElement.webkitEnterFullscreen();
-    } else if (videoElement.requestFullscreen) {
-      // Android & desktop
-      videoElement.requestFullscreen();
-    } else if (videoElement.webkitRequestFullscreen) {
-      videoElement.webkitRequestFullscreen();
-    } else if (videoElement.msRequestFullscreen) {
-      videoElement.msRequestFullscreen();
+// إنشاء المشغل
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    videoId: 'M7lc1UVf-VE', // ضع هنا ID الفيديو بتاعك
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      rel: 0,
+      fs: 1,
+      modestbranding: 1,
+      playsinline: 1
+    },
+    events: {
+      'onReady': onPlayerReady
     }
-  } catch (e) {
-    console.log('Fullscreen error:', e);
-  }
+  });
 }
 
-// 🔄 لما الموبايل يلف، نثبت الاتجاه Landscape لو fullscreen
-window.addEventListener("orientationchange", () => {
-  setTimeout(() => {
+function onPlayerReady() {
+  const container = document.getElementById('playerContainer');
+
+  // لما المستخدم يضغط على الشاشة، نخلي الفيديو ياخد عرض الشاشة بالكامل
+  container.addEventListener('click', () => {
     if (screen.orientation && screen.orientation.lock) {
       screen.orientation.lock("landscape").catch(() => {});
     }
-  }, 300);
-});
+    container.style.position = 'fixed';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.zIndex = '9999';
+  });
+}
 </script>
 
 </body>
