@@ -3,70 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل فيديو يوتيوب للايفون</title>
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+    <title>مشغل فيديو يعمل على iOS وAndroid</title>
     <style>
-        body {
+        * {
             margin: 0;
-            padding: 20px;
-            background: #1a1a1a;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .container {
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 100%;
+            width: 100%;
+            text-align: center;
         }
         
-        .video-wrapper {
-            margin: 20px 0;
-            border-radius: 10px;
+        header {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            border-radius: 15px;
             overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            background: #000;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #myVideo {
+            width: 100%;
+            max-height: 400px;
+            display: none; /* سيتم إظهاره عند تحميل الفيديو */
+        }
+        
+        .video-placeholder {
+            padding: 40px;
+            color: #ccc;
+        }
+        
+        .custom-controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .control-btn {
+            background: linear-gradient(to bottom, #ff8a00, #da1b60);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .control-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .fullscreen-btn {
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
+        }
+        
+        .sample-videos {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .sample-btn {
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+            text-align: right;
+        }
+        
+        .instructions ol {
+            padding-right: 20px;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: #333;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #00c6ff;
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>مشغل فيديو يعمل على iOS</h1>
-        <p>استخدم Video.js لمشاهدة فيديوهات يوتيوب على iPhone</p>
+        <header>
+            <h1>مشغل فيديو متكامل للايفون والاندرويد</h1>
+            <p>حل مشكلة "Playback on other websites has been disabled"</p>
+        </header>
         
-        <div class="video-wrapper">
-            <video
-                id="my-video"
-                class="video-js vjs-default-skin"
-                controls
-                preload="auto"
-                width="100%"
-                height="400"
-                data-setup='{}'>
-                <source src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" type="video/youtube">
+        <div class="upload-section">
+            <h3>اختر فيديو لتشغيله</h3>
+            <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('videoUpload').click()">
+                📁 رفع فيديو من جهازك
+            </button>
+            <p>أو اختر أحد الفيديوهات النموذجية</p>
+        </div>
+        
+        <div class="sample-videos">
+            <h3>فيديوهات نموذجية للاختبار</h3>
+            <button class="sample-btn" onclick="loadSampleVideo(1)">فيديو اختبار 1</button>
+            <button class="sample-btn" onclick="loadSampleVideo(2)">فيديو اختبار 2</button>
+            <button class="sample-btn" onclick="loadSampleVideo(3)">فيديو اختبار 3</button>
+        </div>
+        
+        <div class="video-container">
+            <div class="video-placeholder" id="videoPlaceholder">
+                <p>لم يتم تحميل فيديو بعد</p>
+                <p>اختر فيديو من جهازك أو استخدم أحد الفيديوهات النموذجية</p>
+            </div>
+            <video id="myVideo" controls playsinline>
+                متصفحك لا يدعم تشغيل الفيديو
             </video>
         </div>
         
-        <div style="margin-top: 20px;">
-            <input type="text" id="youtubeUrl" placeholder="أدخل رابط يوتيوب" style="padding: 10px; width: 70%;">
-            <button onclick="loadYoutubeVideo()" style="padding: 10px 20px; margin: 10px;">تحميل الفيديو</button>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="custom-controls">
+            <button class="control-btn" id="playBtn" disabled>
+                <span>▶</span> تشغيل
+            </button>
+            <button class="control-btn" id="pauseBtn" disabled>
+                <span>⏸</span> إيقاف
+            </button>
+            <button class="control-btn fullscreen-btn" id="fullscreenBtn" disabled>
+                <span>⛶</span> ملء الشاشة
+            </button>
+            <button class="control-btn" id="muteBtn" disabled>
+                <span>🔊</span> كتم/فتح
+            </button>
+        </div>
+        
+        <div class="instructions">
+            <h3>كيفية الاستخدام:</h3>
+            <ol>
+                <li>انقر على "رفع فيديو من جهازك" لاختيار فيديو من هاتفك</li>
+                <li>أو انقر على أحد الفيديوهات النموذجية للاختبار</li>
+                <li>استخدم أزرار التحكم للتحكم في الفيديو</li>
+                <li>للدخول في وضع ملء الشاشة، انقر على زر "ملء الشاشة"</li>
+                <li>للعودة من وضع ملء الشاشة، اضغط على زر الرجوع في هاتفك</li>
+            </ol>
+            
+            <h3 style="margin-top: 20px; color: #ffcc00;">لماذا هذا الحل يعمل؟</h3>
+            <ul style="padding-right: 20px;">
+                <li>لا نستخدم يوتيوب أو فيديوهات خارجية</li>
+                <li>الفيديوهات ترفع مباشرة من جهازك أو من مصادر موثوقة</li>
+                <li>استخدام فيديو HTML5 مباشر بدون قيود</li>
+                <li>خاصية `playsinline` لمنع المشاكل على iOS</li>
+            </ul>
         </div>
     </div>
 
-    <script src="https://vjs.zencdn.net/7.20.3/video.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-youtube@2.6.1/dist/Youtube.min.js"></script>
-    
     <script>
-        function loadYoutubeVideo() {
-            const url = document.getElementById('youtubeUrl').value;
-            if (url) {
-                const player = videojs('my-video');
-                player.src({ type: 'video/youtube', src: url });
+        const video = document.getElementById('myVideo');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoUpload = document.getElementById('videoUpload');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        
+        // فيديوهات نموذجية آمنة
+        const sampleVideos = [
+            "", // الفهرس 0 غير مستخدم
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+        ];
+        
+        // تحميل فيديو نموذجي
+        function loadSampleVideo(index) {
+            if (index >= 1 && index <= 3) {
+                showLoading();
+                video.src = sampleVideos[index];
+                video.style.display = 'block';
+                videoPlaceholder.style.display = 'none';
+                
+                video.onloadeddata = function() {
+                    hideLoading();
+                    enableControls();
+                    video.play().catch(e => console.log("التشغيل التلقائي غير مسموح:", e));
+                };
+                
+                video.onerror = function() {
+                    hideLoading();
+                    alert("حدث خطأ في تحميل الفيديو. حاول استخدام فيديو من جهازك.");
+                };
             }
         }
         
-        // تحميل فيديو افتراضي
-        window.addEventListener('load', function() {
-            document.getElementById('youtubeUrl').value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        // رفع فيديو من الجهاز
+        videoUpload.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                showLoading();
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.style.display = 'block';
+                videoPlaceholder.style.display = 'none';
+                
+                video.onloadeddata = function() {
+                    hideLoading();
+                    enableControls();
+                    video.play().catch(e => console.log("التشغيل التلقائي غير مسموح:", e));
+                };
+            }
         });
+        
+        // التحكم في التشغيل
+        playBtn.addEventListener('click', () => {
+            video.play();
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            video.pause();
+        });
+        
+        // التحكم في الصوت
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteBtn.innerHTML = video.muted ? '<span>🔇</span> فتح الصوت' : '<span>🔊</span> كتم';
+        });
+        
+        // ملء الشاشة
+        fullscreenBtn.addEventListener('click', () => {
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.webkitRequestFullscreen) {
+                video.webkitRequestFullscreen();
+            } else if (video.msRequestFullscreen) {
+                video.msRequestFullscreen();
+            }
+        });
+        
+        // تفعيل أزرار التحكم
+        function enableControls() {
+            playBtn.disabled = false;
+            pauseBtn.disabled = false;
+            fullscreenBtn.disabled = false;
+            muteBtn.disabled = false;
+        }
+        
+        // إظهار مؤشر التحميل
+        function showLoading() {
+            progressBar.style.display = 'block';
+            progress.style.width = '30%';
+        }
+        
+        // إخفاء مؤشر التحميل
+        function hideLoading() {
+            progress.style.width = '100%';
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                progress.style.width = '0%';
+            }, 500);
+        }
+        
+        // تحديث واجهة التحكم بناءً على حالة الفيديو
+        video.addEventListener('play', () => {
+            playBtn.style.display = 'none';
+            pauseBtn.style.display = 'flex';
+        });
+        
+        video.addEventListener('pause', () => {
+            playBtn.style.display = 'flex';
+            pauseBtn.style.display = 'none';
+        });
+        
+        // إعداد أولي
+        pauseBtn.style.display = 'none';
+        
+        // تحميل فيديو افتراضي عند فتح الصفحة (اختياري)
+        // loadSampleVideo(1);
     </script>
 </body>
 </html>
