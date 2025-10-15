@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل فيديو يوتيوب للموبايل</title>
+    <title>مشغل فيديو يوتيوب للايفون والاندرويد</title>
     <style>
         * {
             margin: 0;
@@ -49,6 +49,48 @@
             opacity: 0.9;
             max-width: 500px;
             margin: 0 auto;
+        }
+        
+        .video-input-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        .load-btn {
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .load-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
         
         .video-container {
@@ -162,6 +204,14 @@
             h1 {
                 font-size: 2.5rem;
             }
+            
+            .input-group {
+                flex-direction: row;
+            }
+            
+            input {
+                flex: 1;
+            }
         }
         
         .instructions {
@@ -195,14 +245,51 @@
             opacity: 0.8;
             padding: 20px;
         }
+        
+        .device-support {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .device {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .device-icon {
+            font-size: 2.5rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>مشغل فيديو يوتيوب للموبايل</h1>
-            <p class="description">مشغل فيديو مخصص للهواتف المحمولة مع عناصر تحكم مخصصة وإمكانية الدخول في وضع ملء الشاشة</p>
+            <h1>مشغل فيديو يوتيوب للايفون والاندرويد</h1>
+            <p class="description">مشغل فيديو مخصص يعمل على جميع الأجهزة المحمولة مع عناصر تحكم مخصصة</p>
+            
+            <div class="device-support">
+                <div class="device">
+                    <div class="device-icon">📱</div>
+                    <span>iOS</span>
+                </div>
+                <div class="device">
+                    <div class="device-icon">📱</div>
+                    <span>Android</span>
+                </div>
+            </div>
         </header>
+        
+        <div class="video-input-section">
+            <div class="input-group">
+                <input type="text" id="videoId" placeholder="أدخل معرف فيديو يوتيوب (مثل: dQw4w9WgXcQ)">
+                <button class="load-btn" id="loadVideo">تحميل الفيديو</button>
+            </div>
+            <p>يمكنك الحصول على معرف الفيديو من رابط يوتيوب: youtube.com/watch?v=<strong>هنا_معرف_الفيديو</strong></p>
+        </div>
         
         <div class="video-container">
             <div id="player"></div>
@@ -222,16 +309,16 @@
         
         <div class="features">
             <div class="feature-card">
+                <h3>متوافق مع iOS وAndroid</h3>
+                <p>يعمل بشكل مثالي على جميع أجهزة iPhone وAndroid مع دعم كامل للشاشات المختلفة</p>
+            </div>
+            <div class="feature-card">
                 <h3>عناصر تحكم مخصصة</h3>
                 <p>تحكم كامل في تشغيل الفيديو باستخدام أزرار مخصصة بدلاً من عناصر تحكم يوتيوب الافتراضية</p>
             </div>
             <div class="feature-card">
                 <h3>وضع ملء الشاشة</h3>
-                <p>استمتع بمشاهدة الفيديو في وضع ملء الشاشة على جهازك المحمول</p>
-            </div>
-            <div class="feature-card">
-                <h3>تصميم متجاوب</h3>
-                <p>تصميم يتكيف مع جميع أحجام الشاشات بدءًا من الهواتف الذكية</p>
+                <p>استمتع بمشاهدة الفيديو في وضع ملء الشاشة على جميع الأجهزة المحمولة</p>
             </div>
             <div class="feature-card">
                 <h3>واجهة عربية</h3>
@@ -242,7 +329,8 @@
         <div class="instructions">
             <h2>كيفية الاستخدام:</h2>
             <ol>
-                <li>أدخل معرف فيديو يوتيوب في الحقل المخصص</li>
+                <li>أدخل معرف فيديو يوتيوب في الحقل المخصص (مثال: dQw4w9WgXcQ)</li>
+                <li>انقر على زر "تحميل الفيديو"</li>
                 <li>استخدم أزرار التشغيل والإيقاف للتحكم في الفيديو</li>
                 <li>انقر على زر "ملء الشاشة" لمشاهدة الفيديو في وضعية العرض الكامل</li>
                 <li>للعودة من وضع ملء الشاشة، اضغط على زر الرجوع في هاتفك أو اسحب من أعلى الشاشة</li>
@@ -250,29 +338,37 @@
         </div>
         
         <footer>
-            <p>تم التطوير باستخدام YouTube IFrame API | تصميم مخصص للهواتف المحمولة</p>
+            <p>تم التطوير باستخدام YouTube IFrame API | متوافق مع iOS وAndroid</p>
         </footer>
     </div>
 
     <script>
         // متغير لحالة وضع ملء الشاشة
         let isFullscreen = false;
+        let player;
+        
+        // تحميل YouTube IFrame API بشكل غير متزامن
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         
         // تهيئة مشغل يوتيوب
-        let player;
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
-                videoId: 'dQw4w9WgXcQ', // يمكن تغيير هذا الرمز لرمز الفيديو المطلوب
+                videoId: 'dQw4w9WgXcQ', // فيديو افتراضي
                 playerVars: {
-                    'playsinline': 1,
+                    'playsinline': 1, // مهم للتوافق مع iOS
                     'controls': 0, // إخفاء عناصر التحكم الافتراضية
                     'modestbranding': 1,
-                    'rel': 0
+                    'rel': 0,
+                    'enablejsapi': 1
                 },
                 events: {
-                    'onReady': onPlayerReady
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
                 }
             });
         }
@@ -290,6 +386,19 @@
             document.getElementById('fullscreenBtn').addEventListener('click', function() {
                 toggleFullscreen();
             });
+            
+            document.getElementById('loadVideo').addEventListener('click', function() {
+                const videoId = document.getElementById('videoId').value.trim();
+                if (videoId) {
+                    player.loadVideoById(videoId);
+                } else {
+                    alert('يرجى إدخال معرف فيديو يوتيوب صحيح');
+                }
+            });
+        }
+        
+        function onPlayerStateChange(event) {
+            // يمكنك إضافة ردود فعل إضافية عند تغيير حالة الفيديو
         }
         
         // دالة للتبديل بين وضع ملء الشاشة والعادي
@@ -299,19 +408,23 @@
             if (!isFullscreen) {
                 if (container.requestFullscreen) {
                     container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) {
+                } else if (container.webkitRequestFullscreen) { // Safari
                     container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) {
+                } else if (container.msRequestFullscreen) { // IE11
                     container.msRequestFullscreen();
+                } else if (container.mozRequestFullScreen) { // Firefox
+                    container.mozRequestFullScreen();
                 }
                 isFullscreen = true;
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
+                } else if (document.webkitExitFullscreen) { // Safari
                     document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
+                } else if (document.msExitFullscreen) { // IE11
                     document.msExitFullscreen();
+                } else if (document.mozCancelFullScreen) { // Firefox
+                    document.mozCancelFullScreen();
                 }
                 isFullscreen = false;
             }
@@ -324,17 +437,16 @@
         document.addEventListener('MSFullscreenChange', exitHandler);
         
         function exitHandler() {
-            if (!document.fullscreenElement && !document.webkitIsFullScreen && 
-                !document.mozFullScreen && !document.msFullscreenElement) {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement &&
+                !document.msFullscreenElement) {
                 isFullscreen = false;
             }
         }
         
-        // تحميل YouTube IFrame API بشكل غير متزامن
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        // إضافة دعم خاص للشاشات التي تعمل باللمس
+        document.addEventListener('touchstart', function() {}, {passive: true});
     </script>
 </body>
 </html>
