@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل فيديو يوتيوب للايفون والاندرويد</title>
+    <title>مشغل فيديو يوتيوب مع iframe</title>
     <style>
         * {
             margin: 0;
@@ -42,13 +42,43 @@
             margin-bottom: 10px;
         }
         
-        .video-input-section {
+        .input-section {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 20px;
             width: 100%;
             max-width: 800px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .input-group {
@@ -58,13 +88,17 @@
             margin-bottom: 15px;
         }
         
-        input {
+        input, textarea {
             padding: 12px 15px;
             border: none;
-            border-radius: 50px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.9);
             font-size: 1rem;
-            text-align: center;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
         }
         
         .load-btn {
@@ -90,14 +124,14 @@
             background: #000;
         }
         
-        #youtube-frame {
+        #player-wrapper {
             width: 100%;
             height: 0;
             padding-bottom: 56.25%; /* نسبة 16:9 */
             position: relative;
         }
         
-        #youtube-frame iframe {
+        #player-wrapper iframe {
             position: absolute;
             top: 0;
             left: 0;
@@ -135,31 +169,13 @@
             min-width: 140px;
         }
         
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .fullscreen-btn {
             background: linear-gradient(to bottom, #00c6ff, #0072ff);
-        }
-        
-        .video-list {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 800px;
-        }
-        
-        .video-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: right;
-        }
-        
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.2);
         }
         
         .instructions {
@@ -169,6 +185,7 @@
             margin-top: 30px;
             width: 100%;
             max-width: 800px;
+            text-align: right;
         }
         
         .instructions h2 {
@@ -177,7 +194,6 @@
         }
         
         .instructions ol {
-            text-align: right;
             padding-right: 20px;
         }
         
@@ -202,96 +218,143 @@
             .input-group {
                 flex-direction: row;
             }
-            
-            input {
-                flex: 1;
-            }
+        }
+        
+        .code-example {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: left;
+            direction: ltr;
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>مشغل فيديو يوتيوب للايفون والاندرويد</h1>
-            <p>مشغل فيديو يعمل على جميع الأجهزة للفيديوهات المرفوعة على يوتيوب</p>
+            <h1>مشغل فيديو يوتيوب مع iframe</h1>
+            <p>ادخل iframe مباشرة أو رابط يوتيوب - يعمل على iOS وAndroid</p>
         </header>
         
-        <div class="video-input-section">
-            <div class="input-group">
-                <input type="text" id="videoUrl" placeholder="أدخل رابط فيديو يوتيوب">
-                <button class="load-btn" id="loadVideo">تحميل الفيديو</button>
+        <div class="input-section">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('url-tab')">رابط يوتيوب</button>
+                <button class="tab-button" onclick="switchTab('iframe-tab')">كود iframe</button>
             </div>
+            
+            <div id="url-tab" class="tab-content active">
+                <div class="input-group">
+                    <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=...">
+                    <button class="load-btn" onclick="loadFromUrl()">تحميل الفيديو</button>
+                </div>
+            </div>
+            
+            <div id="iframe-tab" class="tab-content">
+                <textarea id="iframeCode" placeholder="الصق كود iframe هنا..."></textarea>
+                <button class="load-btn" onclick="loadFromIframe()">تحميل iframe</button>
+            </div>
+            
             <div class="ios-notice">
-                <strong>ملاحظة هامة لمستخدمي iOS:</strong><br>
-                - قد تحتاج للنقر على الفيديو أولاً لتفعيله<br>
-                - ثم استخدم أزرار التحكم المخصصة
+                <strong>لمستخدمي iOS:</strong> انقر على الفيديو أولاً ثم استخدم أزرار التحكم
             </div>
         </div>
         
         <div class="video-container">
-            <div id="youtube-frame">
+            <div id="player-wrapper">
                 <!-- سيتم إضافة الفيديو هنا -->
             </div>
         </div>
         
         <div class="custom-controls">
-            <button class="control-btn" id="playBtn">
+            <button class="control-btn" id="playBtn" disabled>
                 <span>▶</span> تشغيل
             </button>
-            <button class="control-btn" id="pauseBtn">
+            <button class="control-btn" id="pauseBtn" disabled>
                 <span>⏸</span> إيقاف
             </button>
             <button class="control-btn fullscreen-btn" id="fullscreenBtn">
                 <span>⛶</span> ملء الشاشة
             </button>
-        </div>
-        
-        <div class="video-list">
-            <h3>فيديوهات مقترحة للاختبار</h3>
-            <div class="video-item" onclick="loadVideoById('dQw4w9WgXcQ')">
-                <strong>فيديو اختبار 1</strong><br>
-                <small>معرف الفيديو: dQw4w9WgXcQ</small>
-            </div>
-            <div class="video-item" onclick="loadVideoById('kJQP7kiw5Fk')">
-                <strong>فيديو اختبار 2</strong><br>
-                <small>معرف الفيديو: kJQP7kiw5Fk</small>
-            </div>
-            <div class="video-item" onclick="loadVideoById('9bZkp7q19f0')">
-                <strong>فيديو اختبار 3</strong><br>
-                <small>معرف الفيديو: 9bZkp7q19f0</small>
-            </div>
+            <button class="control-btn" id="reloadBtn">
+                <span>↻</span> إعادة تحميل
+            </button>
         </div>
         
         <div class="instructions">
             <h2>كيفية الاستخدام:</h2>
             <ol>
-                <li>أدخل رابط فيديو يوتيوب في الحقل المخصص</li>
-                <li>أو انقر على أحد الفيديوهات المقترحة</li>
+                <li><strong>طريقة الرابط:</strong> أدخل رابط يوتيوب مباشر</li>
+                <li><strong>طريقة iframe:</strong> الصق كود iframe الكامل</li>
+                <li>انقر على "تحميل الفيديو"</li>
                 <li>على iOS: انقر على الفيديو أولاً لتفعيله</li>
-                <li>استخدم أزرار التشغيل والإيقاف للتحكم</li>
-                <li>انقر على زر "ملء الشاشة" للعرض الكامل</li>
+                <li>استخدم أزرار التحكم للتحكم في التشغيل</li>
             </ol>
             
-            <h3 style="margin-top: 20px; color: #ffcc00;">للمطورين:</h3>
-            <p>لإضافة فيديوهات يوتيوب الخاصة بك، استخدم الدالة:</p>
-            <code style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; display: block; margin: 10px 0;">
-                loadVideoById('معرف_الفيديو_هنا')
-            </code>
+            <h3 style="margin-top: 20px; color: #ffcc00;">أمثلة iframe:</h3>
+            <div class="code-example">
+&lt;iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;
+            </div>
         </div>
     </div>
 
     <script>
-        let currentVideoId = '';
-        let youtubePlayer = null;
+        let currentPlayer = null;
+        
+        // تبديل التبويبات
+        function switchTab(tabId) {
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إلغاء تفعيل جميع الأزرار
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المطلوب
+            document.getElementById(tabId).classList.add('active');
+            
+            // تفعيل الزر المطلوب
+            event.target.classList.add('active');
+        }
+        
+        // تحميل من رابط يوتيوب
+        function loadFromUrl() {
+            const url = document.getElementById('videoUrl').value.trim();
+            const videoId = extractVideoId(url);
+            
+            if (videoId) {
+                loadYouTubeVideo(videoId);
+            } else if (url.length === 11) {
+                loadYouTubeVideo(url);
+            } else {
+                alert('رابط يوتيوب غير صحيح');
+            }
+        }
+        
+        // تحميل من iframe
+        function loadFromIframe() {
+            const iframeCode = document.getElementById('iframeCode').value.trim();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = iframeCode;
+            const iframe = tempDiv.querySelector('iframe');
+            
+            if (iframe && iframe.src.includes('youtube.com') || iframe.src.includes('youtu.be')) {
+                loadCustomIframe(iframeCode);
+            } else {
+                alert('كود iframe غير صحيح أو ليس ليوتيوب');
+            }
+        }
         
         // تحميل فيديو يوتيوب
         function loadYouTubeVideo(videoId) {
-            currentVideoId = videoId;
-            const playerDiv = document.getElementById('youtube-frame');
+            const playerWrapper = document.getElementById('player-wrapper');
             
-            playerDiv.innerHTML = `
+            const iframeHtml = `
                 <iframe 
-                    id="youtubePlayer"
                     src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1&rel=0" 
                     frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -299,47 +362,21 @@
                 </iframe>
             `;
             
-            youtubePlayer = document.getElementById('youtubePlayer');
+            playerWrapper.innerHTML = iframeHtml;
+            currentPlayer = playerWrapper.querySelector('iframe');
             
-            // إعداد أزرار التحكم بعد تحميل الفيديو
-            setTimeout(initControls, 1000);
+            enableControls();
+            setupPlayerEvents();
         }
         
-        // تحميل فيديو بواسطة المعرف
-        function loadVideoById(videoId) {
-            document.getElementById('videoUrl').value = `https://www.youtube.com/watch?v=${videoId}`;
-            loadYouTubeVideo(videoId);
-        }
-        
-        // تهيئة أزرار التحكم
-        function initControls() {
-            const playBtn = document.getElementById('playBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
+        // تحميل iframe مخصص
+        function loadCustomIframe(iframeCode) {
+            const playerWrapper = document.getElementById('player-wrapper');
+            playerWrapper.innerHTML = iframeCode;
+            currentPlayer = playerWrapper.querySelector('iframe');
             
-            playBtn.onclick = function() {
-                if (youtubePlayer && youtubePlayer.contentWindow) {
-                    youtubePlayer.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                }
-            };
-            
-            pauseBtn.onclick = function() {
-                if (youtubePlayer && youtubePlayer.contentWindow) {
-                    youtubePlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                }
-            };
-            
-            fullscreenBtn.onclick = function() {
-                if (youtubePlayer) {
-                    if (youtubePlayer.requestFullscreen) {
-                        youtubePlayer.requestFullscreen();
-                    } else if (youtubePlayer.webkitRequestFullscreen) {
-                        youtubePlayer.webkitRequestFullscreen();
-                    } else if (youtubePlayer.msRequestFullscreen) {
-                        youtubePlayer.msRequestFullscreen();
-                    }
-                }
-            };
+            enableControls();
+            setupPlayerEvents();
         }
         
         // استخراج معرف الفيديو من الرابط
@@ -349,29 +386,58 @@
             return match ? match[1] : null;
         }
         
-        // تحميل الفيديو من رابط
-        document.getElementById('loadVideo').addEventListener('click', function() {
-            const url = document.getElementById('videoUrl').value.trim();
-            const videoId = extractVideoId(url);
+        // تفعيل أزرار التحكم
+        function enableControls() {
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = false;
+        }
+        
+        // إعداد أحداث المشغل
+        function setupPlayerEvents() {
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const reloadBtn = document.getElementById('reloadBtn');
             
-            if (videoId) {
-                loadYouTubeVideo(videoId);
-            } else if (url.length === 11) {
-                // إذا كان المستخدم أدخل المعرف مباشرة
-                loadYouTubeVideo(url);
-            } else {
-                alert('رابط يوتيوب غير صحيح. يرجى استخدام رابط مثل: https://www.youtube.com/watch?v=معرف_الفيديو');
-            }
-        });
+            playBtn.onclick = function() {
+                if (currentPlayer && currentPlayer.contentWindow) {
+                    currentPlayer.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                }
+            };
+            
+            pauseBtn.onclick = function() {
+                if (currentPlayer && currentPlayer.contentWindow) {
+                    currentPlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+            };
+            
+            fullscreenBtn.onclick = function() {
+                if (currentPlayer) {
+                    if (currentPlayer.requestFullscreen) {
+                        currentPlayer.requestFullscreen();
+                    } else if (currentPlayer.webkitRequestFullscreen) {
+                        currentPlayer.webkitRequestFullscreen();
+                    } else if (currentPlayer.msRequestFullscreen) {
+                        currentPlayer.msRequestFullscreen();
+                    }
+                }
+            };
+            
+            reloadBtn.onclick = function() {
+                if (currentPlayer) {
+                    currentPlayer.src += '';
+                }
+            };
+        }
         
-        // تحميل فيديو افتراضي عند فتح الصفحة
+        // تحميل فيديو افتراضي
         window.addEventListener('DOMContentLoaded', function() {
-            loadVideoById('aqz-KE-bpKQ');
+            loadYouTubeVideo('dQw4w9WgXcQ');
             document.getElementById('videoUrl').value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            
+            // مثال iframe جاهز
+            document.getElementById('iframeCode').value = '<iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
         });
-        
-        // حل إضافي لمشاكل iOS
-        document.addEventListener('touchstart', function() {}, {passive: true});
     </script>
 </body>
 </html>
