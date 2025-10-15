@@ -88,11 +88,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .load-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        
         .video-container {
             position: relative;
             width: 100%;
@@ -104,14 +99,14 @@
             background: #000;
         }
         
-        #player {
+        #youtube-player {
             width: 100%;
             height: 0;
             padding-bottom: 56.25%; /* نسبة العرض إلى الارتفاع 16:9 */
             position: relative;
         }
         
-        #player iframe {
+        #youtube-player iframe {
             position: absolute;
             top: 0;
             left: 0;
@@ -151,17 +146,8 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .control-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        
         .control-btn:active {
             transform: translateY(1px);
-        }
-        
-        .control-btn i {
-            font-size: 1.2rem;
         }
         
         .fullscreen-btn {
@@ -184,11 +170,6 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
         }
         
         .feature-card h3 {
@@ -263,13 +244,21 @@
         .device-icon {
             font-size: 2.5rem;
         }
+        
+        .ios-warning {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>مشغل فيديو يوتيوب للايفون والاندرويد</h1>
-            <p class="description">مشغل فيديو مخصص يعمل على جميع الأجهزة المحمولة مع عناصر تحكم مخصصة</p>
+            <p class="description">مشغل فيديو مخصص يعمل على جميع الأجهزة المحمولة</p>
             
             <div class="device-support">
                 <div class="device">
@@ -285,168 +274,151 @@
         
         <div class="video-input-section">
             <div class="input-group">
-                <input type="text" id="videoId" placeholder="أدخل معرف فيديو يوتيوب (مثل: dQw4w9WgXcQ)">
+                <input type="text" id="videoUrl" placeholder="أدخل رابط فيديو يوتيوب كامل">
                 <button class="load-btn" id="loadVideo">تحميل الفيديو</button>
             </div>
-            <p>يمكنك الحصول على معرف الفيديو من رابط يوتيوب: youtube.com/watch?v=<strong>هنا_معرف_الفيديو</strong></p>
+            <p>الصيغة المدعومة: https://www.youtube.com/watch?v=معرف_الفيديو</p>
+            <div class="ios-warning">
+                ملاحظة: على iOS، قد تحتاج للنقر فوق الفيديو أولاً ثم استخدام أزرار التحكم
+            </div>
         </div>
         
         <div class="video-container">
-            <div id="player"></div>
+            <div id="youtube-player">
+                <!-- سيتم إضافة الفيديو هنا -->
+            </div>
         </div>
         
         <div class="custom-controls">
             <button class="control-btn" id="playBtn">
-                <i>▶</i> تشغيل
+                <span>▶</span> تشغيل
             </button>
             <button class="control-btn" id="pauseBtn">
-                <i>⏸</i> إيقاف
+                <span>⏸</span> إيقاف
             </button>
             <button class="control-btn fullscreen-btn" id="fullscreenBtn">
-                <i>⛶</i> ملء الشاشة
+                <span>⛶</span> ملء الشاشة
             </button>
         </div>
         
         <div class="features">
             <div class="feature-card">
                 <h3>متوافق مع iOS وAndroid</h3>
-                <p>يعمل بشكل مثالي على جميع أجهزة iPhone وAndroid مع دعم كامل للشاشات المختلفة</p>
+                <p>يعمل على جميع أجهزة iPhone وAndroid مع حلول لمشاكل iOS</p>
             </div>
             <div class="feature-card">
-                <h3>عناصر تحكم مخصصة</h3>
-                <p>تحكم كامل في تشغيل الفيديو باستخدام أزرار مخصصة بدلاً من عناصر تحكم يوتيوب الافتراضية</p>
+                <h3>دعم المتصفحات</h3>
+                <p>يعمل على Safari وChrome وFirefox وجميع المتصفحات الحديثة</p>
             </div>
             <div class="feature-card">
                 <h3>وضع ملء الشاشة</h3>
-                <p>استمتع بمشاهدة الفيديو في وضع ملء الشاشة على جميع الأجهزة المحمولة</p>
+                <p>يدعم وضع ملء الشاشة على جميع الأجهزة</p>
             </div>
             <div class="feature-card">
                 <h3>واجهة عربية</h3>
-                <p>واجهة مستخدم باللغة العربية مع دعم للاتجاه من اليمين لليسار</p>
+                <p>واجهة مستخدم باللغة العربية مع دعم كامل للاتجاه RTL</p>
             </div>
         </div>
         
         <div class="instructions">
             <h2>كيفية الاستخدام:</h2>
             <ol>
-                <li>أدخل معرف فيديو يوتيوب في الحقل المخصص (مثال: dQw4w9WgXcQ)</li>
+                <li>أدخل رابط فيديو يوتيوب كامل في الحقل المخصص</li>
                 <li>انقر على زر "تحميل الفيديو"</li>
+                <li>على iOS: انقر فوق الفيديو أولاً ثم استخدم أزرار التحكم</li>
                 <li>استخدم أزرار التشغيل والإيقاف للتحكم في الفيديو</li>
                 <li>انقر على زر "ملء الشاشة" لمشاهدة الفيديو في وضعية العرض الكامل</li>
-                <li>للعودة من وضع ملء الشاشة، اضغط على زر الرجوع في هاتفك أو اسحب من أعلى الشاشة</li>
             </ol>
         </div>
         
         <footer>
-            <p>تم التطوير باستخدام YouTube IFrame API | متوافق مع iOS وAndroid</p>
+            <p>مشغل فيديو يوتيوب متوافق مع iOS وAndroid | تم التطوير خصيصاً لحل مشاكل iOS</p>
         </footer>
     </div>
 
     <script>
-        // متغير لحالة وضع ملء الشاشة
-        let isFullscreen = false;
-        let player;
-        
-        // تحميل YouTube IFrame API بشكل غير متزامن
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        
-        // تهيئة مشغل يوتيوب
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: 'dQw4w9WgXcQ', // فيديو افتراضي
-                playerVars: {
-                    'playsinline': 1, // مهم للتوافق مع iOS
-                    'controls': 0, // إخفاء عناصر التحكم الافتراضية
-                    'modestbranding': 1,
-                    'rel': 0,
-                    'enablejsapi': 1
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+        // حل مشكلة iOS - استخدام طريقة مباشرة بدلاً من YouTube API
+        document.getElementById('loadVideo').addEventListener('click', function() {
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+            
+            if (!videoUrl) {
+                alert('يرجى إدخال رابط فيديو يوتيوب');
+                return;
+            }
+            
+            // استخراج معرف الفيديو من الرابط
+            let videoId = '';
+            
+            if (videoUrl.includes('youtube.com/watch?v=')) {
+                videoId = videoUrl.split('v=')[1];
+                const ampersandPosition = videoId.indexOf('&');
+                if (ampersandPosition !== -1) {
+                    videoId = videoId.substring(0, ampersandPosition);
                 }
-            });
-        }
-        
-        function onPlayerReady(event) {
-            // إعداد أزرار التحكم
-            document.getElementById('playBtn').addEventListener('click', function() {
-                player.playVideo();
-            });
-            
-            document.getElementById('pauseBtn').addEventListener('click', function() {
-                player.pauseVideo();
-            });
-            
-            document.getElementById('fullscreenBtn').addEventListener('click', function() {
-                toggleFullscreen();
-            });
-            
-            document.getElementById('loadVideo').addEventListener('click', function() {
-                const videoId = document.getElementById('videoId').value.trim();
-                if (videoId) {
-                    player.loadVideoById(videoId);
-                } else {
-                    alert('يرجى إدخال معرف فيديو يوتيوب صحيح');
+            } else if (videoUrl.includes('youtu.be/')) {
+                videoId = videoUrl.split('youtu.be/')[1];
+                const ampersandPosition = videoId.indexOf('?');
+                if (ampersandPosition !== -1) {
+                    videoId = videoId.substring(0, ampersandPosition);
                 }
-            });
-        }
-        
-        function onPlayerStateChange(event) {
-            // يمكنك إضافة ردود فعل إضافية عند تغيير حالة الفيديو
-        }
-        
-        // دالة للتبديل بين وضع ملء الشاشة والعادي
-        function toggleFullscreen() {
-            const container = document.querySelector('.video-container');
-            
-            if (!isFullscreen) {
-                if (container.requestFullscreen) {
-                    container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) { // Safari
-                    container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) { // IE11
-                    container.msRequestFullscreen();
-                } else if (container.mozRequestFullScreen) { // Firefox
-                    container.mozRequestFullScreen();
-                }
-                isFullscreen = true;
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { // Safari
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { // IE11
-                    document.msExitFullscreen();
-                } else if (document.mozCancelFullScreen) { // Firefox
-                    document.mozCancelFullScreen();
+                // إذا كان المستخدم أدخل معرف الفيديو مباشرة
+                videoId = videoUrl;
+            }
+            
+            if (!videoId) {
+                alert('رابط يوتيوب غير صحيح. يرجى استخدام رابط مثل: https://www.youtube.com/watch?v=معرف_الفيديو');
+                return;
+            }
+            
+            // إنشاء iframe جديد
+            const playerDiv = document.getElementById('youtube-player');
+            playerDiv.innerHTML = `
+                <iframe 
+                    src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            `;
+            
+            // تهيئة المتغيرات للتحكم
+            initVideoControls(playerDiv.querySelector('iframe'));
+        });
+        
+        function initVideoControls(iframe) {
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            // إرسال أوامر للفيديو
+            playBtn.addEventListener('click', function() {
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            });
+            
+            pauseBtn.addEventListener('click', function() {
+                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            });
+            
+            fullscreenBtn.addEventListener('click', function() {
+                // محاولة الدخول في وضع ملء الشاشة
+                if (iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe.webkitRequestFullscreen) {
+                    iframe.webkitRequestFullscreen();
+                } else if (iframe.msRequestFullscreen) {
+                    iframe.msRequestFullscreen();
                 }
-                isFullscreen = false;
-            }
+                
+                // بدلاً من ذلك، يمكن تشغيل الفيديو في وضع ملء الشاشة على يوتيوب
+                iframe.contentWindow.postMessage('{"event":"command","func":"requestFullscreen","args":""}', '*');
+            });
         }
         
-        // الكشف عن الخروج من وضع ملء الشاشة
-        document.addEventListener('fullscreenchange', exitHandler);
-        document.addEventListener('webkitfullscreenchange', exitHandler);
-        document.addEventListener('mozfullscreenchange', exitHandler);
-        document.addEventListener('MSFullscreenChange', exitHandler);
-        
-        function exitHandler() {
-            if (!document.fullscreenElement && 
-                !document.webkitFullscreenElement && 
-                !document.mozFullScreenElement &&
-                !document.msFullscreenElement) {
-                isFullscreen = false;
-            }
-        }
-        
-        // إضافة دعم خاص للشاشات التي تعمل باللمس
-        document.addEventListener('touchstart', function() {}, {passive: true});
+        // تحميل فيديو افتراضي عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('videoUrl').value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        });
     </script>
 </body>
 </html>
