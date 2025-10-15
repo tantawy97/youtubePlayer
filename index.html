@@ -61,39 +61,43 @@ html,body {
     display:flex; 
     justify-content:space-between; 
     align-items:center; 
-    background:rgba(0,0,0,0.7); 
-    padding:10px 15px; 
+    background:rgba(0,0,0,0.8); 
+    padding:12px 15px; 
     box-sizing:border-box; 
-    transition: opacity 0.5s ease;
+    transition: opacity 0.3s ease;
+    opacity: 1 !important; /* إصلاح مهم لـ Safari */
 }
 
 #controls.hidden {
-    opacity:0; 
+    opacity:0.3 !important; /* بدلاً من 0 لكي تبقى مرئية */
     pointer-events:none;
 }
 
 #leftControls {
     display:flex; 
-    gap:10px; 
+    gap:12px; 
     align-items:center; 
     position:relative;
 }
 
 button{
-    padding:6px 12px; 
+    padding:8px 14px; 
     border:none; 
-    border-radius:4px; 
+    border-radius:6px; 
     cursor:pointer; 
     background:#fff; 
     font-weight:600; 
     font-size:16px;
+    -webkit-appearance: none; /* مهم لـ Safari */
+    appearance: none;
 }
 
 #progressWrapper {
     flex:1; 
     display:flex; 
     align-items:center; 
-    gap:6px;
+    gap:8px;
+    margin: 0 12px;
 }
 
 #progress {
@@ -102,6 +106,8 @@ button{
     background: rgba(255,255,255,0.3);
     border-radius: 3px;
     outline: none;
+    -webkit-appearance: none; /* مهم لـ Safari */
+    appearance: none;
 }
 
 #progress::-webkit-slider-thumb {
@@ -115,40 +121,41 @@ button{
 
 #time {
     color:#fff; 
-    font-size:13px; 
-    min-width:90px; 
+    font-size:14px; 
+    min-width:95px; 
     text-align:right;
+    font-weight: 500;
 }
 
 #fsBtn {
-    width:32px; 
-    height:32px; 
+    width:36px; 
+    height:36px; 
     background:#fff; 
     display:flex; 
     align-items:center; 
     justify-content:center; 
-    border-radius:4px; 
+    border-radius:6px; 
     font-size:18px;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 #watermark {
     position:absolute; 
-    top:10px; 
-    left:10px; 
-    color:rgba(255,255,255,0.4); 
-    font-size:20px; 
+    top:15px; 
+    left:15px; 
+    color:rgba(255,255,255,0.5); 
+    font-size:18px; 
     font-weight:bold; 
     z-index:5; 
     pointer-events:none; 
     user-select:none; 
-    transition: top 0.5s ease, left 0.5s ease;
 }
 
 #volumeSlider {
     position:absolute; 
-    bottom:50px; 
-    left:70%; 
-    transform: translateX(-50%); 
+    bottom:60px; 
+    left:70px; 
     display:none; 
     width:8px; 
     height:100px; 
@@ -165,8 +172,6 @@ button{
     background:#fff; 
     border-radius:50%; 
     cursor:pointer; 
-    margin-top: -8px; 
-    margin-left:0;
 }
 
 #centerPlayBtn {
@@ -179,28 +184,63 @@ button{
     height:15vw; 
     min-width:80px; 
     min-height:80px;
-    background:rgba(0,0,0,0.6); 
+    background:rgba(0,0,0,0.7); 
     color:#fff; 
     border:none; 
     border-radius:50%;
     cursor:pointer; 
     display:block; 
     z-index:4;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* حجم controls حسب الجهاز */
 @media (max-width:768px){
-    #controls {padding:15px;}
-    #centerPlayBtn {font-size:15vw; width:25vw; height:25vw; min-width:100px; min-height:100px;}
+    #controls {
+        padding:15px;
+        background:rgba(0,0,0,0.9); /* خلفية أغمق للتحكم */
+    }
+    #centerPlayBtn {
+        font-size:15vw; 
+        width:25vw; 
+        height:25vw; 
+        min-width:100px; 
+        min-height:100px;
+    }
     
-    /* إخفاء عناصر المتصفح على الموبايل */
-    body {
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
+    button {
+        padding:10px 16px;
+        font-size: 18px;
+    }
+    
+    #time {
+        font-size: 16px;
+        min-width: 110px;
+    }
+    
+    #fsBtn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+}
+
+/* إصلاحات خاصة بـ Safari */
+@supports (-webkit-touch-callout: none) {
+    #controls {
+        opacity: 1 !important;
+        background: rgba(0,0,0,0.95);
+        padding: 15px;
+    }
+    
+    button {
+        background: #ffffff;
+        border: 2px solid #ddd;
+    }
+    
+    #progress {
+        background: rgba(255,255,255,0.4);
     }
 }
 
@@ -213,16 +253,8 @@ button{
 }
 
 #wrapper.fullscreen #controls { 
-    padding:2vw; 
-}
-
-/* إخفاء شريط العناوين على الموبايل */
-@media (max-width: 768px) {
-    body {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-    }
+    padding:15px; 
+    background: rgba(0,0,0,0.95);
 }
 
 /* منع ظهور القوائم والسياقات */
@@ -236,9 +268,9 @@ button{
     user-select: none;
 }
 
-/* إخفاء شريط العناوين في وضع ملء الشاشة */
-#wrapper.fullscreen {
-    background: #000;
+/* إخفاء شريط التمرير */
+::-webkit-scrollbar {
+    display: none;
 }
 
 /* تحسينات للعرض على الشاشات المختلفة */
@@ -246,11 +278,23 @@ button{
     #wrapper {
         height: 100vh;
     }
+    
+    #controls {
+        padding: 10px;
+    }
 }
 
-/* إخفاء شريط التمرير */
-::-webkit-scrollbar {
-    display: none;
+/* إصلاح الـ z-index لـ Safari */
+#controls {
+    z-index: 1000 !important;
+}
+
+#overlay, #pauseOverlay {
+    z-index: 3 !important;
+}
+
+#centerPlayBtn {
+    z-index: 1001 !important;
 }
 </style>
 </head>
@@ -298,6 +342,11 @@ let lastTapTime = 0;
 let lastTapX = 0;
 let isActivated = false;
 
+// كشف إذا كان المتصفح Safari على iOS
+function isSafariIOS() {
+    return /iP(ad|hone|od).+Version\/[\d\.]+.*Safari/i.test(navigator.userAgent);
+}
+
 // YouTube API
 function onYouTubeIframeAPIReady(){
     player=new YT.Player('player',{
@@ -307,22 +356,29 @@ function onYouTubeIframeAPIReady(){
             controls:0,
             modestbranding:1,
             rel:0,
-            fs:1, // تفعيل ملء الشاشة
+            fs:1,
             disablekb:1,
             showinfo:0,
-            playsinline:1 // مهم للـ iOS
+            playsinline:1
         },
         events:{
             'onReady':()=>{
                 duration=player.getDuration(); 
                 setInterval(updateProgress,500);
                 
-                // إضافة خصائص إضافية للـ iframe
                 const iframe = player.getIframe();
-                iframe.style.width = '90%';
-                iframe.style.height = '90%';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
                 iframe.setAttribute('playsinline', '1');
                 iframe.setAttribute('webkit-playsinline', '1');
+                
+                // إصلاح إضافي لـ Safari
+                if(isSafariIOS()) {
+                    setTimeout(() => {
+                        controlsDiv.style.opacity = '1';
+                        controlsDiv.style.visibility = 'visible';
+                    }, 1000);
+                }
             },
             'onStateChange':updateState
         }
@@ -337,12 +393,18 @@ function updateState(event){
         updatePlayPauseIcon();
         updateWatermarkVisibility();
         centerPlayBtn.innerText='⏸';
+        
+        // إظهار الـ controls مؤقتاً عند التشغيل
+        showControlsTemporarily();
     } else if(event.data===YT.PlayerState.PAUSED || event.data===YT.PlayerState.ENDED){
         isPlaying=false;
         pauseOverlay.style.display='block';
         updatePlayPauseIcon();
         updateWatermarkVisibility();
         centerPlayBtn.innerText='▶️';
+        
+        // إظهار الـ controls عند التوقف
+        showControls();
     }
 }
 
@@ -380,10 +442,9 @@ volumeSlider.addEventListener('input',()=>{
     }
 });
 
-// Fullscreen - النسخة المحسنة
+// Fullscreen
 async function toggleFullscreen(){
     if(!document.fullscreenElement){
-        // الدخول في وضع ملء الشاشة
         if(wrapper.requestFullscreen) {
             await wrapper.requestFullscreen();
         } else if(wrapper.webkitRequestFullscreen) {
@@ -392,11 +453,9 @@ async function toggleFullscreen(){
             await wrapper.msRequestFullscreen();
         }
 
-        // إعدادات إضافية لملء الشاشة
         wrapper.classList.add('fullscreen');
         document.body.style.overflow = 'hidden';
         
-        // محاولة تدوير الشاشة على الأجهزة المحمولة
         if(screen.orientation && screen.orientation.lock){
             try { 
                 await screen.orientation.lock('landscape'); 
@@ -405,19 +464,10 @@ async function toggleFullscreen(){
             }
         }
 
-        // تكبير عناصر التحكم على الشاشات الصغيرة
-        if(window.innerWidth < 768){
-            controlsDiv.style.fontSize = '18px';
-            progress.style.height = '8px';
-        }
-        
-        // إخفاء شريط العناوين على المتصفحات المحمولة
-        setTimeout(() => {
-            window.scrollTo(0, 1);
-        }, 100);
+        // إظهار الـ controls في وضع fullscreen
+        showControlsTemporarily();
         
     } else {
-        // الخروج من وضع ملء الشاشة
         if(document.exitFullscreen) {
             await document.exitFullscreen();
         } else if(document.webkitExitFullscreen) {
@@ -426,18 +476,15 @@ async function toggleFullscreen(){
             await document.msExitFullscreen();
         }
 
-        // إعادة تعيين الإعدادات
         wrapper.classList.remove('fullscreen');
         document.body.style.overflow = '';
         
-        // إلغاء قفل اتجاه الشاشة
         if(screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
         }
-
-        // إعادة حجم عناصر التحكم
-        controlsDiv.style.fontSize = '';
-        progress.style.height = '';
+        
+        // إظهار الـ controls بعد الخروج من fullscreen
+        showControlsTemporarily();
     }
 }
 
@@ -457,52 +504,39 @@ fsBtn.addEventListener('click', toggleFullscreen);
     document.addEventListener(ev, updateFsIcon);
 });
 
+// إظهار الـ controls مؤقتاً
+function showControlsTemporarily() {
+    controlsDiv.classList.remove('hidden');
+    setTimeout(() => {
+        if(isPlaying) {
+            controlsDiv.classList.add('hidden');
+        }
+    }, 3000);
+}
+
+// إظهار الـ controls بشكل دائم
+function showControls() {
+    controlsDiv.classList.remove('hidden');
+    clearTimeout(controlsTimeout);
+}
+
+let controlsTimeout;
+
 // Desktop click/double click
-let clickTimeout=null;
 overlay.addEventListener('click', (e)=>{
     if(isTouchDevice) return;
-    if(clickTimeout) return;
-    clickTimeout=setTimeout(()=>{
-        if(!e._doubleClick){ 
-            isPlaying?player.pauseVideo():player.playVideo(); 
-        }
-        clickTimeout=null;
-    },300);
+    showControlsTemporarily();
 });
 
 overlay.addEventListener('dblclick',(e)=>{
     if(isTouchDevice) return;
-    e._doubleClick=true;
-    clearTimeout(clickTimeout);
-    clickTimeout=null;
     toggleFullscreen();
 });
 
 pauseOverlay.addEventListener('dblclick',(e)=>{
     if(isTouchDevice) return;
-    e._doubleClick=true;
-    clearTimeout(clickTimeout);
-    clickTimeout=null;
     toggleFullscreen();
 });
-
-// Controls auto-hide
-let controlsTimeout;
-function showControls(){ 
-    controlsDiv.classList.remove('hidden'); 
-    centerPlayBtn.style.display='block';
-    clearTimeout(controlsTimeout); 
-    if(isPlaying){
-        controlsTimeout=setTimeout(()=>{
-            controlsDiv.classList.add('hidden'); 
-            centerPlayBtn.style.display='none';
-        },2000);
-    }
-}
-
-controlsDiv.classList.remove('hidden');
-centerPlayBtn.style.display='block';
-wrapper.addEventListener('mousemove',showControls);
 
 // Mobile touch handler
 overlay.addEventListener('touchstart', ()=>{ 
@@ -520,14 +554,14 @@ overlay.addEventListener('touchend', (e)=>{
         if(tapX > width/2) player.seekTo(player.getCurrentTime() + 10, true);
         else player.seekTo(Math.max(player.getCurrentTime()-10,0), true);
         lastTapTime = 0;
+        showControlsTemporarily();
         return;
     }
 
     if(controlsDiv.classList.contains('hidden')){
-        showControls();
+        showControlsTemporarily();
     } else {
         controlsDiv.classList.add('hidden');
-        centerPlayBtn.style.display='none';
     }
 
     lastTapTime = currentTime;
@@ -559,31 +593,16 @@ function formatTime(sec){
     return `${m}:${s<10?'0':''}${s}`; 
 }
 
-// Keyboard
+// Keyboard shortcuts
 document.addEventListener('keydown',(e)=>{
+    if(e.key===" " || e.key==="k"){
+        e.preventDefault();
+        if(isPlaying) player.pauseVideo(); 
+        else player.playVideo();
+    }
     if(e.key==="ArrowRight") player.seekTo(player.getCurrentTime()+10,true);
     if(e.key==="ArrowLeft") player.seekTo(Math.max(player.getCurrentTime()-10,0),true);
-    if(e.key==="ArrowUp"){ 
-        const vol=Math.min(player.getVolume()+10,100);
-        player.setVolume(vol);
-        if(vol>0 && player.isMuted()){
-            player.unMute(); 
-            muteBtn.innerText='🔊'; 
-            volumeSlider.value=vol;
-        }
-    }
-    if(e.key==="ArrowDown"){
-        const vol=Math.max(player.getVolume()-10,0);
-        player.setVolume(vol);
-        if(vol===0){ 
-            player.mute(); 
-            muteBtn.innerText='🔇'; 
-        } else if(player.isMuted()){ 
-            player.unMute(); 
-            muteBtn.innerText='🔊'; 
-        }
-        volumeSlider.value=player.getVolume();
-    }
+    if(e.key==="f") toggleFullscreen();
 });
 
 // Prevent right click
@@ -591,8 +610,8 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 
 // Watermark
 function moveWatermarkRandomly(){
-    const maxX=wrapper.clientWidth-watermark.clientWidth-10;
-    const maxY=wrapper.clientHeight-watermark.clientHeight-10;
+    const maxX=wrapper.clientWidth-watermark.clientWidth-20;
+    const maxY=wrapper.clientHeight-watermark.clientHeight-20;
     watermark.style.left=`${Math.random()*maxX}px`;
     watermark.style.top=`${Math.random()*maxY}px`;
 }
@@ -605,29 +624,29 @@ function updateWatermarkVisibility(){
     watermark.style.display=isPlaying?'block':'none'; 
 }
 
-// إخفاء شريط العناوين على الموبايل
-function hideAddressBar() {
-    setTimeout(function() {
-        window.scrollTo(0, 1);
-    }, 0);
+// إصلاح نهائي لـ Safari - إعادة تطبيق الـ styles بعد فترة
+if(isSafariIOS()) {
+    setTimeout(() => {
+        controlsDiv.style.cssText = `
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 1000; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(0,0,0,0.95); 
+            padding: 15px; 
+            box-sizing: border-box; 
+            opacity: 1 !important;
+            visibility: visible !important;
+        `;
+    }, 2000);
 }
 
-// تشغيل الوظيفة عند تحميل الصفحة وعند تغيير حجم النافذة
-window.addEventListener('load', hideAddressBar);
-window.addEventListener('orientationchange', hideAddressBar);
-
-// منع التكبير/التصغير على الموبايل
-document.addEventListener('gesturestart', function(e) {
-    e.preventDefault();
-});
-
-document.addEventListener('gesturechange', function(e) {
-    e.preventDefault();
-});
-
-document.addEventListener('gestureend', function(e) {
-    e.preventDefault();
-});
+// إظهار الـ controls عند التمرير (لـ Safari)
+wrapper.addEventListener('touchmove', showControlsTemporarily);
 </script>
 </body>
 </html>
